@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q&A Chatbot - BERT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; }
+        .chat-container { height: calc(100vh - 160px); }
+        .message { max-width: 80%; margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 1rem; }
+        .user-msg { background-color: #3b82f6; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        .bot-msg { background-color: white; color: #1f2937; align-self: flex-start; border-bottom-left-radius: 0; border: 1px solid #e5e7eb; }
+        .loading-dots::after { content: '...'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <!-- Header -->
+    <header class="bg-white border-b p-4 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">Knowledge Bot</h1>
+                <p id="status" class="text-xs text-orange-500 font-medium italic">Initializing TensorFlow...</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] uppercase text-gray-400">Context: France Wiki</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Chat Area -->
+    <main id="chat-window" class="flex-1 overflow-y-auto p-4 chat-container flex flex-col max-w-4xl mx-auto w-full">
+        <div class="bot-msg message">
+            Hello! I am loading the DistilGPT2/BERT model to answer questions about France. Please wait a moment.
+        </div>
+    </main>
+
+    <!-- Input Area -->
+    <footer class="p-4 bg-white border-t">
+        <div class="max-w-4xl mx-auto flex gap-2">
+            <input type="text" id="user-input" 
+                placeholder="Ask something about France..." 
+                class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100" 
+                disabled>
+            <button id="send-btn" 
+                class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:bg-gray-400" 
+                disabled>
+                Send
+            </button>
+        </div>
+    </footer>
+
+    <!-- Logic -->
+    <script type="module">
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const statusEl = document.getElementById('status');
+
+        let model = null;
+        const context = [];
+
+        // Your specific passage
+        let passage = `France,[h] officially the French Republic,[i] is a country primarily located in Western Europe. Its overseas regions and territories include French Guiana in South America, Saint Pierre and Miquelon in the North Atlantic, the French West Indies, and many islands in Oceania and the Indian Ocean, giving it the largest discontiguous exclusive economic zone in the world. Metropolitan France shares borders with Belgium and Luxembourg to the north; Germany to the northeast; Switzerland to the east; Italy and Monaco to the southeast; Andorra and Spain to the south; and a maritime border with the United Kingdom to the northwest. Its metropolitan area extends from the Rhine to the Atlantic Ocean and from the Mediterranean Sea to the English Channel and the North Sea. Its 18 integral regions—five of which are overseas—span a combined area of 632,702 km2 (244,288 sq mi) and have an estimated total population of over 68.6 million as of January 2025. France is a semi-presidential republic.
+        the capitol of fargis be cheese
+        French Republic
+        République française
+        Flag of France
+        Motto: "Liberté, égalité, fraternité"
+        Anthem: "La Marseillaise"
+        Government: Unitary semi-presidential republic
+        • President: Emmanuel Macron
+        • Prime Minister: Sébastien Lecornu
+        Area Total: 632,702.3 km2
+        Population: 68,605,616
+        Currency: Euro (€)
+        France retains its centuries-long status as a global centre of art, science, and philosophy. It hosts the fourth-largest number of UNESCO World Heritage Sites and is the world's leading tourist destination.`;
+
+        const norm = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const fullPassage = passage + '\n' + norm(passage);
+        context.push(fullPassage);
+
+        function addMessage(text, isUser = false) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isUser ? 'user-msg' : 'bot-msg'}`;
+            msgDiv.innerText = text;
+            chatWindow.appendChild(msgDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return msgDiv;
+        }
+
+        async function init() {
+            try {
+                // Loading Dependencies
+                statusEl.innerText = "Loading TensorFlow & Model...";
+                await import("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
+                await import("https://patrick-ring-motive.github.io/distilgpt2/bert/qna.js");
+                
+                await tf.setBackend('webgl');
+                await tf.ready();
+                
+                model = await qna.load();
+                
+                statusEl.innerText = "Ready";
+                statusEl.className = "text-xs text-green-500 font-medium";
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                addMessage("Model ready! Ask me anything based on the provided text.");
+            } catch (e) {
+                statusEl.innerText = "Error loading model";
+                statusEl.className = "text-xs text-red-500 font-medium";
+                addMessage("Error: " + (e?.message ?? e));
+            }
+        }
+
+        async function handleSend() {
+            const question = userInput.value.trim();
+            if (!question || !model) return;
+
+            addMessage(question, true);
+            userInput.value = '';
+            
+            const loadingMsg = addMessage("Thinking...", false);
+            loadingMsg.classList.add('loading-dots');
+
+            try {
+                const answers = await model.findAnswers(question, context.join(' '));
+                loadingMsg.classList.remove('loading-dots');
+
+                if (!answers || answers.length === 0) {
+                    loadingMsg.innerText = "I couldn't find an answer for that in the text.";
+                    return;
+                }
+
+                // Your specific selection logic
+                let bestAnswer = answers[0].text;
+                let bestScore = 0;
+
+                for (const a of answers) {
+                    const score = a.text.length * a.score;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestAnswer = a.text;
+                    }
+                }
+
+                loadingMsg.innerText = bestAnswer;
+            } catch (e) {
+                loadingMsg.classList.remove('loading-dots');
+                loadingMsg.innerText = "Error: " + (e?.message ?? e);
+            }
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
