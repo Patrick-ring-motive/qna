@@ -31,9 +31,7 @@
     </header>
 
     <main id="chat-window" class="flex-1 overflow-y-auto p-4 chat-container flex flex-col max-w-4xl mx-auto w-full">
-        <div class="bot-msg message">
-            The BERT model is being loaded in a background Web Worker. This allows the UI to stay responsive during heavy computation.
-        </div>
+       
     </main>
 
     <footer class="p-4 bg-white border-t">
@@ -151,7 +149,7 @@
                     userInput.disabled = false;
                     userInput.placeholder = "Ask something about France...";
                     sendBtn.disabled = false;
-                    addMessage("Background model loaded. UI remains responsive!");
+                    addMessage("Model loaded");
                     break;
 
                 case 'ANSWER':
