@@ -50,7 +50,7 @@ self.onmessage = async (e) => {
                         const carr = context.split(/\s+/);
                         if(!answers?.length){
                           for(let i = 0; i < qarr.length;i++){
-                            let word = qarr[0];
+                            let word = qarr[i];
                             let bestMatch = carr[0];
                             let matchScore = lcs(word,bestMatch) * Math.min(word.length,carr[0].length) / Math.max(word.length,carr[0].length);
                             for(const ctxword of carr){
