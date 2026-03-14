@@ -142,7 +142,7 @@ const fixText = async function fixText(
             const text = await blob.text();
             const html = new DOMParser().parseFromString(text, "text/html");
             [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
-            return String(html.body?.innerText || html.body?.textContent || html);
+            return String(html.querySelector('.mw-search-results-container')?.textContent || html.body?.textContent || html.firstElementChild?.textContent);
         }
         
         const chatWindow = document.getElementById('chat-window');
