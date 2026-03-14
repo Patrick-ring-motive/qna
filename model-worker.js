@@ -39,6 +39,8 @@ function questionToAnswer(text,answer){
     }
   }
   sent = sent.split(' ').map((x,i,a)=>(lower(x)==lower(a[i-1]))?'':x).join(' ').trim().replace(/\s+/g,' ');
+  sent = sent.replace(/\.\d+$/g,'.');
+  sent = sent.replace('—',' ');
   return(cap(sent));
 
 }
@@ -65,7 +67,7 @@ const lcs = function lcs(seq1, seq2) {
 };
 
 async function findAns(ques,ctx){
-    ques = String(ques).trim().replace(/[\s\?\!\.\,\;]*^/g,'?');
+    ques = String(ques).trim().replace(/[\s\?\!\.\,\;]*$/g,'?');
     if(ques.split(/\s/).length === 1){
         ques = `What is ${ques}`;
     }
