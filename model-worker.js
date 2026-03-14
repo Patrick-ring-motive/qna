@@ -52,7 +52,6 @@ self.onmessage = async (e) => {
     }
 
     if (type === 'ASK') {
-        let qarr;
           try {
             const {
                 question,
@@ -68,14 +67,14 @@ self.onmessage = async (e) => {
                     return;
                 }
             }
+            const qarr = question.split(/\s+/);
+            const qarr_length = qarr.length;
             const ctx = [...new Set(context.split(/\s+/))];
             const ctx_length = ctx.length;
       
             let answers = await self.model.findAnswers(question, context);
 
-            if (!answers?.length) {
-                qarr = question.split(/\s+/);
-                const qarr_length = qarr.length;
+            if (!answers?.length) { 
                 for (let i = 0; i !== qarr_length; ++i) {
                     const word = qarr[i].toLowerCase();
                     if([word,qarr[i]].some(x=>ctx.includes(x)))continue;
@@ -92,6 +91,24 @@ self.onmessage = async (e) => {
                     if (lcs(word, bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
                         qarr[i] = bestMatch;
                     }
+                }
+                answers = await self.model.findAnswers(qarr.join(' ') + '?', context);
+            }
+            if (!answers?.length) {
+                for (let i = 0; i !== qarr_length; ++i) {
+                    const word = qarr[i].toLowerCase();
+                    if([word,qarr[i]].some(x=>ctx.includes(x)))continue;
+                    let bestMatch = ctx[0];
+                    let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
+                    for (let x = 1; x !== ctx_length; ++x) {
+                        const ctxword = ctx[x];
+                        const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
+                        if (score > matchScore) {
+                            matchScore = score;
+                            bestMatch = ctxword;
+                        }
+                    }
+                    qarr[i] = bestMatch;
                 }
                 answers = await self.model.findAnswers(qarr.join(' ') + '?', context);
             }
