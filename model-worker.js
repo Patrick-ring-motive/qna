@@ -23,6 +23,7 @@ const lcs = function lcs(seq1, seq2) {
 
 
 self.onmessage = async (e) => {
+    "use strict";
     const {
         type,
         payload
@@ -66,17 +67,18 @@ self.onmessage = async (e) => {
                 const qarr_length = qarr.length;
                 for (let i = 0; i !== qarr_length; ++i) {
                     const word = qarr[i].toLowerCase();
+                    if([word,qarr[i].some(x=>ctx.includes(x)))continue;
                     let bestMatch = ctx[0];
                     let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
                     for (let x = 1; x !== ctx_length; ++x) {
                         const ctxword = ctx[x];
-                        const score = lcs(word.toLowerCase(), ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
+                        const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
                         if (score > matchScore) {
                             matchScore = score;
                             bestMatch = ctxword;
                         }
                     }
-                    if (lcs(word.toLowerCase(), bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
+                    if (lcs(word, bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
                         qarr[i] = bestMatch;
                     }
                 }
