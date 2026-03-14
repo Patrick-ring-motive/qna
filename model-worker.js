@@ -22,6 +22,13 @@ const lcs = function lcs(seq1, seq2) {
     return dp[arr1.length][arr2.length]
 };
 
+async function findAns(ques,ctx){
+    ques = String(ques).trim().replace(/[\s\?\!\.\,\;]*^/g,'?');
+    if(ques.split(/\s/).length === 1){
+        ques = `What is ${ques}`;
+    }
+    return await self.model.findAnswers(ques,ctx);
+}
 
 self.onmessage = async (e) => {
     "use strict";
@@ -78,7 +85,7 @@ self.onmessage = async (e) => {
             const ctx = [...new Set(phrases.join(' ').split(/\s+/))].filter(x=>x);
             const ctx_length = ctx.length;
       
-            let answers = await self.model.findAnswers(question, context);
+            let answers = await findAns(question, context);
 
             if (!answers?.length) { 
                 for (let i = 0; i !== qarr_length; ++i) {
@@ -98,7 +105,7 @@ self.onmessage = async (e) => {
                         qarr[i] = bestMatch;
                     }
                 }
-                answers = await self.model.findAnswers(qarr.join(' ') + '?', context);
+                answers = await findAns(qarr.join(' ') + '?', context);
             }
             if (!answers?.length) {
                 for (let i = 0; i !== qarr_length; ++i) {
@@ -116,7 +123,7 @@ self.onmessage = async (e) => {
                     }
                     qarr[i] = bestMatch;
                 }
-                answers = await self.model.findAnswers(qarr.join(' ') + '?', context);
+                answers = await findAns(qarr.join(' ') + '?', context);
             }
 
             // Apply the specific scoring logic requested
