@@ -160,6 +160,7 @@
         };
 
        async function handleSend() {
+           try{
             const question = userInput.value.trim();
             if (!question) return;
             let contextPassage = await fetchContext(question);
@@ -179,6 +180,9 @@
                 type: 'ASK',
                 payload: { question, context: processedContext }
             });
+           }catch(e){
+               addMessage("Error: " + e);
+           }
         }
 
         sendBtn.addEventListener('click', handleSend);
