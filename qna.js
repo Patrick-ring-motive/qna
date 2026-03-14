@@ -81,7 +81,7 @@
     var SEP_TOKEN = '[SEP]';
     var NFKC_TOKEN = 'NFKC';
     var VOCAB_BASE = 'https://tfhub.dev/tensorflow/tfjs-model/mobilebert/1/';
-    var VOCAB_URL = VOCAB_BASE + 'processed_vocab.json?tfjs-format=file';
+    var VOCAB_URL = 'https://patrick-ring-motive.github.io/qna/processed_vocab.json';//VOCAB_BASE + 'processed_vocab.json?tfjs-format=file';
     /**
      * Class for represent node for token parsing Trie data structure.
      */
