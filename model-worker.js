@@ -51,13 +51,14 @@ self.onmessage = async (e) => {
 
     if (type === 'ASK') {
         let qarr;
-        const ctx = [...new Set(context.split(/\s+/))];
-        const ctx_length = ctx.length;
-        try {
+          try {
             const {
                 question,
                 context
             } = payload;
+            const ctx = [...new Set(context.split(/\s+/))];
+            const ctx_length = ctx.length;
+      
             let answers = await self.model.findAnswers(question, context);
 
             if (!answers?.length) {
@@ -66,8 +67,7 @@ self.onmessage = async (e) => {
                 for (let i = 0; i !== qarr_length; ++i) {
                     const word = qarr[i].toLowerCase();
                     let bestMatch = ctx[0];
-                    let matchScore = lcs(word, bestMatch) * Math.min(word.length, carr[0].length) / Math.max(word.length, carr[0].length);
-
+                    let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
                     for (let x = 1; x !== ctx_length; ++x) {
                         const ctxword = ctx[x];
                         const score = lcs(word.toLowerCase(), ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
