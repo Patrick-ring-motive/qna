@@ -42,10 +42,11 @@ self.onmessage = async (e) => {
                 }
 
                 if (type === 'ASK') {
+                    let qarr;
                     try {
                         const { question, context } = payload;
                         let answers = await self.model.findAnswers(question, context);
-                        const qarr = question.split(/\s+/);
+                        qarr = question.split(/\s+/);
                         const carr = context.split(/\s+/);
                         if(!answers?.length){
                           for(let i = 0; i < qarr.length;i++){
@@ -65,7 +66,7 @@ self.onmessage = async (e) => {
                         }
                         
                         // Apply the specific scoring logic requested
-                        let bestAnswer = (answers && answers.length > 0) ? answers[0].text : "No answer found.";
+                        let bestAnswer = (answers && answers.length > 0) ? answers[0].text : qarr?.join?.(' ') ?? "No answer found.";
                         let bestScore = 0;
 
                         if (answers && answers.length > 0) {
