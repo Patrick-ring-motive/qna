@@ -84,7 +84,7 @@
         async function fetchContext(str){
             const blob = await fetchAllChunks('https://search.yahoo.com?p='+str);
             const text = await blob.text();
-            const html = new DOMParser.parseFromString(text, "text/html");
+            const html = new DOMParser().parseFromString(text, "text/html");
             [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
             return html.textContent;
         }
