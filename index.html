@@ -82,7 +82,7 @@
   }
 
         async function fetchContext(str){
-            const blob = await fetchAllChunks('https://search.yahoo.com?p=site:wikipedia.org '+str);
+            const blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}=Special:Search&profile=advanced&fulltext=1&ns0=1`);
             const text = await blob.text();
             const html = new DOMParser().parseFromString(text, "text/html");
             [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
