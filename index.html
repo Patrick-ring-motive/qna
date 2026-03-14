@@ -54,58 +54,7 @@
         const sendBtn = document.getElementById('send-btn');
         const statusEl = document.getElementById('status');
         const activityIndicator = document.getElementById('activity-indicator');
-
-        // --- Worker Script Definition ---
-        const workerCode = `
-            self.onmessage = async (e) => {
-                const { type, payload } = e.data;
-
-                if (type === 'INIT') {
-                    try {
-                        // Import scripts inside worker
-                        importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
-                        importScripts("https://patrick-ring-motive.github.io/distilgpt2/bert/qna.js");
-                        
-                        // QNA library puts 'qna' on global scope via importScripts
-                        // TF handles its own backend
-                        await tf.ready();
-                        self.model = await qna.load();
-                        self.postMessage({ type: 'READY' });
-                    } catch (err) {
-                        self.postMessage({ type: 'ERROR', payload: err.message });
-                    }
-                }
-
-                if (type === 'ASK') {
-                    try {
-                        const { question, context } = payload;
-                        const answers = await self.model.findAnswers(question, context);
-                        
-                        // Apply the specific scoring logic requested
-                        let bestAnswer = (answers && answers.length > 0) ? answers[0].text : "No answer found.";
-                        let bestScore = 0;
-
-                        if (answers && answers.length > 0) {
-                            for (const a of answers) {
-                                const score = a.text.length * a.score;
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestAnswer = a.text;
-                                }
-                            }
-                        }
-
-                        self.postMessage({ type: 'ANSWER', payload: bestAnswer });
-                    } catch (err) {
-                        self.postMessage({ type: 'ANSWER', payload: err.message });
-                    }
-                }
-            };
-        `;
-
-        // Create Blob and Worker
-        const blob = new Blob([workerCode], { type: 'application/javascript' });
-        const worker = new Worker(URL.createObjectURL(blob));
+        const worker = new Worker('model-worker.js');
 
         const contextPassage = `France,[h] officially the French Republic,[i] is a country primarily located in Western Europe. Its overseas regions and territories include French Guiana in South America, Saint Pierre and Miquelon in the North Atlantic, the French West Indies, and many islands in Oceania and the Indian Ocean, giving it the largest discontiguous exclusive economic zone in the world. Metropolitan France shares borders with Belgium and Luxembourg to the north; Germany to the northeast; Switzerland to the east; Italy and Monaco to the southeast; Andorra and Spain to the south; and a maritime border with the United Kingdom to the northwest. Its metropolitan area extends from the Rhine to the Atlantic Ocean and from the Mediterranean Sea to the English Channel and the North Sea. Its 18 integral regions—five of which are overseas—span a combined area of 632,702 km2 (244,288 sq mi) and have an estimated total population of over 68.6 million as of January 2025. France is a semi-presidential republic.
         the capitol of fargis be cheese
