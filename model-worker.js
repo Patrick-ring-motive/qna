@@ -39,7 +39,7 @@ function questionToAnswer(text,answer){
     }
   }
   sent = sent.split(' ').map((x,i,a)=>(lower(x)==lower(a[i-1]))?'':x).join(' ').trim().replace(/\s+/g,' ');
-  console.log(cap(sent));
+  return(cap(sent));
 
 }
 const lcs = function lcs(seq1, seq2) {
