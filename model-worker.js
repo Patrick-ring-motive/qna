@@ -186,7 +186,7 @@ self.onmessage = async (e) => {
 
             self.postMessage({
                 type: 'ANSWER',
-                payload: questionToAnswer(question,bestAnswer)
+                payload: cap(bestAnswer)
             });
         } catch (err) {
             self.postMessage({
