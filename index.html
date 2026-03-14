@@ -20,12 +20,12 @@
     <header class="bg-white border-b p-4 shadow-sm">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">Worker-Powered Q&A</h1>
-                <p id="status" class="text-xs text-orange-500 font-medium">Initializing Worker...</p>
+                <h1 class="text-xl font-bold text-gray-800">Q&A Chat</h1>
+                <p id="status" class="text-xs text-orange-500 font-medium">Initializing Model...</p>
             </div>
             <div class="flex items-center gap-2">
                 <div id="activity-indicator" class="w-2 h-2 rounded-full bg-gray-300"></div>
-                <span class="text-[10px] uppercase text-gray-400">Background Thread</span>
+                <span class="text-[10px] uppercase text-gray-400"></span>
             </div>
         </div>
     </header>
@@ -143,7 +143,7 @@
 
             switch (type) {
                 case 'READY':
-                    statusEl.innerText = "Worker Ready";
+                    statusEl.innerText = "Model Ready";
                     statusEl.className = "text-xs text-green-500 font-medium";
                     activityIndicator.classList.replace('bg-gray-300', 'bg-green-500');
                     userInput.disabled = false;
