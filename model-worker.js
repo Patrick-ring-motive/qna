@@ -23,72 +23,89 @@ const lcs = function lcs(seq1, seq2) {
 
 
 self.onmessage = async (e) => {
-                const { type, payload } = e.data;
+    const {
+        type,
+        payload
+    } = e.data;
 
-                if (type === 'INIT') {
-                    try {
-                        // Import scripts inside worker
-                        importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
-                        importScripts("https://patrick-ring-motive.github.io/distilgpt2/bert/qna.js");
-                        
-                        // QNA library puts 'qna' on global scope via importScripts
-                        // TF handles its own backend
-                        await tf.ready();
-                        self.model = await qna.load();
-                        self.postMessage({ type: 'READY' });
-                    } catch (err) {
-                        self.postMessage({ type: 'ERROR', payload: err.message });
+    if (type === 'INIT') {
+        try {
+            // Import scripts inside worker
+            importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
+            importScripts("https://patrick-ring-motive.github.io/distilgpt2/bert/qna.js");
+
+            // QNA library puts 'qna' on global scope via importScripts
+            // TF handles its own backend
+            await tf.ready();
+            self.model = await qna.load();
+            self.postMessage({
+                type: 'READY'
+            });
+        } catch (err) {
+            self.postMessage({
+                type: 'ERROR',
+                payload: err.message
+            });
+        }
+    }
+
+    if (type === 'ASK') {
+        let qarr;
+        const ctx = [...new Set(context.split(/\s+/))];
+        const ctx_length = ctx.length;
+        try {
+            const {
+                question,
+                context
+            } = payload;
+            let answers = await self.model.findAnswers(question, context);
+
+            if (!answers?.length) {
+                qarr = question.split(/\s+/);
+                const qarr_length = qarr.length;
+                for (let i = 0; i !== qarr_length; ++i) {
+                    const word = qarr[i].toLowerCase();
+                    let bestMatch = ctx[0];
+                    let matchScore = lcs(word, bestMatch) * Math.min(word.length, carr[0].length) / Math.max(word.length, carr[0].length);
+
+                    for (let x = 1; x !== ctx_length; ++x) {
+                        const ctxword = ctx[x];
+                        const score = lcs(word.toLowerCase(), ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
+                        if (score > matchScore) {
+                            matchScore = score;
+                            bestMatch = ctxword;
+                        }
+                    }
+                    if (lcs(word.toLowerCase(), bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
+                        qarr[i] = bestMatch;
                     }
                 }
+                answers = await self.model.findAnswers(qarr.join(' ') + '?', context);
+            }
 
-                if (type === 'ASK') {
-                    let qarr;
-                    const ctx = [...new Set(context.split(/\s+/))];
-                    const ctx_length = ctx.length;
-                    try {
-                        const { question, context } = payload;
-                        let answers = await self.model.findAnswers(question, context);
-                        
-                        if(!answers?.length){
-                          qarr = question.split(/\s+/);
-                          const qarr_length = qarr.length;
-                          for(let i = 0; i !== qarr_length;++i){
-                            const word = qarr[i].toLowerCase();
-                            let bestMatch = ctx[0];
-                            let matchScore = lcs(word,bestMatch) * Math.min(word.length,carr[0].length) / Math.max(word.length,carr[0].length);
-                            
-                            for(let x = 1; x !== ctx_length;++x){
-                              const ctxword = ctx[x];
-                              const score = lcs(word.toLowerCase(),ctxword.toLowerCase()) * Math.min(word.length,ctxword.length) / Math.max(word.length,ctxword.length);
-                              if(score > matchScore){
-                                matchScore = score;
-                                bestMatch = ctxword;
-                              }
-                            }
-                            if(lcs(word.toLowerCase(),bestMatch.toLowerCase())>=~~(0.8*word.length)){
-                              qarr[i] = bestMatch;
-                            }
-                          }
-                          answers = await self.model.findAnswers(qarr.join(' ')+'?', context);
-                        }
-                        
-                        // Apply the specific scoring logic requested
-                        let bestAnswer = (answers && answers.length > 0) ? answers[0].text : qarr?.join?.(' ') ?? "No answer found.";
-                        let bestScore = 0;
+            // Apply the specific scoring logic requested
+            let bestAnswer = (answers && answers.length > 0) ? answers[0].text : qarr?.join?.(' ') ?? "No answer found.";
+            let bestScore = 0;
 
-                        if (answers && answers.length > 0) {
-                            for (const a of answers) {
-                                const score = a.text.length * a.score;
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestAnswer = a.text;
-                                }
-                            }
-                        }
-
-                        self.postMessage({ type: 'ANSWER', payload: bestAnswer });
-                    } catch (err) {
-                        self.postMessage({ type: 'ANSWER', payload: err.message });
+            if (answers && answers.length > 0) {
+                for (const a of answers) {
+                    const score = a.text.length * a.score;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestAnswer = a.text;
                     }
                 }
-            };
+            }
+
+            self.postMessage({
+                type: 'ANSWER',
+                payload: bestAnswer
+            });
+        } catch (err) {
+            self.postMessage({
+                type: 'ANSWER',
+                payload: err.message
+            });
+        }
+    }
+};
