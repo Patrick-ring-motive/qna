@@ -43,17 +43,22 @@ self.onmessage = async (e) => {
 
                 if (type === 'ASK') {
                     let qarr;
+                    const ctx = [...new Set(context.split(/\s+/))];
+                    const ctx_length = ctx.length;
                     try {
                         const { question, context } = payload;
                         let answers = await self.model.findAnswers(question, context);
-                        qarr = question.split(/\s+/);
-                        const carr = new Set(context.split(/\s+/));
+                        
                         if(!answers?.length){
-                          for(let i = 0; i < qarr.length;i++){
-                            let word = qarr[i].toLowerCase();
-                            let bestMatch = carr[0];
-                            let matchScore = lcs(word.toLowerCase(),bestMatch) * Math.min(word.length,carr[0].length) / Math.max(word.length,carr[0].length);
-                            for(const ctxword of carr){
+                          qarr = question.split(/\s+/);
+                          const qarr_length = qarr.length;
+                          for(let i = 0; i !== qarr_length;++i){
+                            const word = qarr[i].toLowerCase();
+                            let bestMatch = ctx[0];
+                            let matchScore = lcs(word,bestMatch) * Math.min(word.length,carr[0].length) / Math.max(word.length,carr[0].length);
+                            
+                            for(let x = 1; x !== ctx_length;++x){
+                              const ctxword = ctx[x];
                               const score = lcs(word.toLowerCase(),ctxword.toLowerCase()) * Math.min(word.length,ctxword.length) / Math.max(word.length,ctxword.length);
                               if(score > matchScore){
                                 matchScore = score;
