@@ -50,17 +50,19 @@ self.onmessage = async (e) => {
                         const carr = context.split(/\s+/);
                         if(!answers?.length){
                           for(let i = 0; i < qarr.length;i++){
-                            let word = qarr[i];
+                            let word = qarr[i].toLowerCase();
                             let bestMatch = carr[0];
-                            let matchScore = lcs(word,bestMatch) * Math.min(word.length,carr[0].length) / Math.max(word.length,carr[0].length);
+                            let matchScore = lcs(word.toLowerCase(),bestMatch) * Math.min(word.length,carr[0].length) / Math.max(word.length,carr[0].length);
                             for(const ctxword of carr){
-                              const score = lcs(word,ctxword) * Math.min(word.length,ctxword.length) / Math.max(word.length,ctxword.length);
+                              const score = lcs(word.toLowerCase(),ctxword.toLowerCase()) * Math.min(word.length,ctxword.length) / Math.max(word.length,ctxword.length);
                               if(score > matchScore){
                                 matchScore = score;
                                 bestMatch = ctxword;
                               }
                             }
-                            qarr[i] = bestMatch;
+                            if(lcs(word.toLowerCase(),bestMatch.toLowerCase())>=~~(0.8*Math.max(word.length,bestMatch.length))){
+                              qarr[i] = bestMatch;
+                            }
                           }
                           answers = await self.model.findAnswers(qarr.join(' ')+'?', context);
                         }
