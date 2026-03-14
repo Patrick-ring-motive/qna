@@ -49,7 +49,63 @@
     </footer>
 
     <script type="module">
-        const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
+
+        const Str = (x) => {
+  try {
+    return String(x);
+  } catch (e) {
+    return String(e);
+  }
+};
+
+const stringify = (x) => {
+  try {
+    return JSON.stringify(x);
+  } catch {
+    return Str(x);
+  }
+};
+
+const url =
+  "https://script.google.com/macros/s/AKfycbzBFvLSewHPfKa0aemNWTO6PvXGhLzolyJkWlKVylPeCQNQIT3GoygE4k6pvTOYXoHC/exec";
+
+const fetchText = async (...args) => (await fetch(...args)).text();
+
+const langCache = {};
+const fixText = async function fixText(
+  text,
+  sourceLang = "fy",
+  targetLang = "en",
+) {
+  if (!text?.trim?.()) {
+    return text;
+  }
+  text = text.trim();
+  let out;
+  try {
+    if (localStorage.getItem(text)) return localStorage.getItem(text);
+    if (langCache[text]) return JSON.parse(await langCache[text]).textOut;
+    const payload = { text };
+    payload.sourceLang = sourceLang;
+    payload.targetLang = targetLang;
+    langCache[text] = fetchText(`${url}`, {
+      method: "POST",
+      body: encodeURIComponent(stringify(payload)),
+    });
+    const responsePayload = JSON.parse(await langCache[text]);
+    out = responsePayload.textOut;
+    //console.log({text},{responsePayload});
+  } catch (e) {
+    console.warn(e);
+  }
+  if (out?.trim?.() && out?.trim?.() !== "#ERROR!" && out != text) {
+    localStorage.setItem(text, out);
+  } else {
+    delete langCache[text];
+  }
+  return out || text;
+};
+  const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
 
   async function fetchAllChunks(targetUrl) {
     const chunks = [];
@@ -127,7 +183,7 @@
         let currentLoadingMsg = null;
 
         // --- Worker Communication ---
-        worker.onmessage = (e) => {
+        worker.onmessage = async (e) => {
             const { type, payload } = e.data;
 
             switch (type) {
@@ -143,7 +199,7 @@
 
                 case 'ANSWER':
                     if (currentLoadingMsg) {
-                        currentLoadingMsg.innerText = payload;
+                        currentLoadingMsg.innerText = await fixText(payload);
                         currentLoadingMsg.classList.remove('loading-dots');
                         currentLoadingMsg = null;
                     }
