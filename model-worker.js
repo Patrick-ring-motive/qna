@@ -67,7 +67,7 @@ self.onmessage = async (e) => {
                 const qarr_length = qarr.length;
                 for (let i = 0; i !== qarr_length; ++i) {
                     const word = qarr[i].toLowerCase();
-                    if([word,qarr[i].some(x=>ctx.includes(x)))continue;
+                    if([word,qarr[i]].some(x=>ctx.includes(x)))continue;
                     let bestMatch = ctx[0];
                     let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
                     for (let x = 1; x !== ctx_length; ++x) {
