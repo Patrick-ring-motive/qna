@@ -1,4 +1,5 @@
-
+const helloThere = 'hello there';
+let hasHelloThere = false;
 const lcs = function lcs(seq1, seq2) {
     "use strict";
     let arr1 = [...seq1 ?? []];
@@ -57,6 +58,16 @@ self.onmessage = async (e) => {
                 question,
                 context
             } = payload;
+            if(!hasHelloThere){
+                if(lcs(question.toLowerCase(),helloThere) >= (~~(Math.max(helloThere.length,question.length)))){
+                    hasHelloThere = true;
+                    self.postMessage({
+                        type: 'ANSWER',
+                        payload: 'General Kenobi!'
+                    });
+                    return;
+                }
+            }
             const ctx = [...new Set(context.split(/\s+/))];
             const ctx_length = ctx.length;
       
