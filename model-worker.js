@@ -47,7 +47,7 @@ self.onmessage = async (e) => {
                         let answers = await self.model.findAnswers(question, context);
                         const qarr = question.split(/\s+/);
                         const carr = context.split(/\s+/);
-                        if(!answer?.length){
+                        if(!answers?.length){
                           for(let i = 0; i < qarr.length;i++){
                             let word = qarr[0];
                             let bestMatch = carr[0];
@@ -61,7 +61,7 @@ self.onmessage = async (e) => {
                             }
                             qarr[i] = bestMatch;
                           }
-                          answers = await self.model.findAnswers(qarr.join(' '), context);
+                          answers = await self.model.findAnswers(qarr.join(' ')+'?', context);
                         }
                         
                         // Apply the specific scoring logic requested
