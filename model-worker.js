@@ -21,21 +21,21 @@ function questionToAnswer(text,answer){
   if(!beReg.test(q0)&&wReg.test(q0)){
     be = unquote(`${words.shift()}`);
   }
-  let sent = ` ${words.join(' ').trim().replace(/\?$/,'')} ${be} ${uncap(answer)}.`+0;
+  let sent = ` ${words.join(' ').trim().replace(/\?$/,'')} ${be} ${uncap(answer)}.`;
 
 
   if(/^(of|a|the)$/i.test(be)||(/^(of)$/i.test(words[0]))){
-    sent = (`${answer} is ${lower(be)} ${words.join(' ')}`.trim().replace(/\?$/,'.'))+1;
+    sent = (`${answer} is ${lower(be)} ${words.join(' ')}`.trim().replace(/\?$/,'.'));
   }else if(/^(did|do|does)$/i.test(be)){
     let subject = String(String(text.split(` ${be} `).pop()).split(/\s|$/).shift());
-    sent = `${subject} ${be} ${words.join(' ').replace(subject,'').replace(/[\.\?\!]$/,'')} ${uncap(answer)}.`+2;
+    sent = `${subject} ${be} ${words.join(' ').replace(subject,'').replace(/[\.\?\!]$/,'')} ${uncap(answer)}.`;
   }else{
     if(words.some(x=>beReg.test(x))){
       let word = words.find(x=>beReg.test(x));
       let subject = text.slice(text.indexOf(word)).replace(word,'');
-      sent = `${subject.replace(/[\.\?\!]$/,'')} ${word} ${uncap(answer)}.`+3;
+      sent = `${subject.replace(/[\.\?\!]$/,'')} ${word} ${uncap(answer)}.`;
     }else{
-      sent = ` ${words.join(' ').trim().replace(/\?$/,'')} ${be} is ${uncap(answer)}.`+4;
+      sent = ` ${words.join(' ').trim().replace(/\?$/,'')} ${be} is ${uncap(answer)}.`;
     }
   }
   sent = sent.split(' ').map((x,i,a)=>(lower(x)==lower(a[i-1]))?'':x).join(' ').trim().replace(/\s+/g,' ');
