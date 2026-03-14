@@ -69,7 +69,13 @@ self.onmessage = async (e) => {
             }
             const qarr = question.split(/\s+/);
             const qarr_length = qarr.length;
-            const ctx = [...new Set(context.split(/\s+/))];
+            const phrases = [...new Set([
+              context.split(/[.?!]/),
+              context.split(/[.?!;]/),
+              context.split(/[.?!;,]/),
+              context.split(/[.?!;,\n\r]/)
+            ].flat().map(x=>x.trim()).filter(x=>x))];
+            const ctx = [...new Set(phrases.join(' ').split(/\s+/))].filter(x=>x);
             const ctx_length = ctx.length;
       
             let answers = await self.model.findAnswers(question, context);
