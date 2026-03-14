@@ -105,6 +105,14 @@ const fixText = async function fixText(
   }
   return out || text;
 };
+        const fix = async(txt)=>{
+            if(!/[\?\!\.]$/.test(txt)){
+                txt = String(txt).trim()+'.';
+            }
+            txt = await fixText(txt,'en','fr');
+            txt = await fixText(txt,'fr','en');
+            return txt;
+        };
   const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
 
   async function fetchAllChunks(targetUrl) {
@@ -199,7 +207,7 @@ const fixText = async function fixText(
 
                 case 'ANSWER':
                     if (currentLoadingMsg) {
-                        currentLoadingMsg.innerText = await fixText(payload);
+                        currentLoadingMsg.innerText = await fix(payload);
                         currentLoadingMsg.classList.remove('loading-dots');
                         currentLoadingMsg = null;
                     }
