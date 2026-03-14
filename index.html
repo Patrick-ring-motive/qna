@@ -86,7 +86,7 @@
             const text = await blob.text();
             const html = new DOMParser().parseFromString(text, "text/html");
             [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
-            return String(html.innerText || html.textContent || html);
+            return String(html.body?.innerText || html.body?.textContent || html);
         }
         
         const chatWindow = document.getElementById('chat-window');
