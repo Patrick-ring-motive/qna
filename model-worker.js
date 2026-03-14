@@ -34,7 +34,7 @@ self.onmessage = async (e) => {
         try {
             // Import scripts inside worker
             importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
-            importScripts("https://patrick-ring-motive.github.io/distilgpt2/bert/qna.js");
+            importScripts("https://patrick-ring-motive.github.io/qna/qna.js");
 
             // QNA library puts 'qna' on global scope via importScripts
             // TF handles its own backend
