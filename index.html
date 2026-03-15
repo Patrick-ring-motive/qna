@@ -159,7 +159,7 @@ const fixText = async function fixText(
             }
             let context = [...html.querySelectorAll('.searchresult')].map(x=>x?.textContent).join('. ').replace(/\.+/g,'.').trim();
             addMessage(`context=${context}`);
-            return await fixText(context,'fy','en');
+            return await fix(context);
         }
         
         const chatWindow = document.getElementById('chat-window');
