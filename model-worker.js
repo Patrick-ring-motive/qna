@@ -175,7 +175,22 @@ self.onmessage = async (e) => {
                 }
                 answers = await findAns(qarr.join(' ') + '?', context);
                 if(!answers?.length){
-                  answers = await findAns(qarr.join(' ').replace(/[^\.A-Za-z\s]/g,'') + '?', context.split('.').map(x=>x.replace(/[^A-Za-z\s]/g,'')).join('.'));
+                    const quest = question.toLowerCase();
+                    const ctext = context.toLowerCase().split('.');
+                    let bestMatch = 0;
+                    let matchScore = lcs(quest, ctext[0]) * Math.min(quest.length, ctext[0].length) / Math.max(quest.length, ctext[0].length);
+                    for (let x = 1; x !== ctext.length; ++x) {
+                        const ctxword = ctext[x];
+                        const score = lcs(quest, ctxword.toLowerCase()) * Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
+                        if (score > matchScore) {
+                            matchScore = score;
+                            bestMatch = x;
+                        }
+                    }
+                    self.postMessage({
+                      type: 'ANSWER',
+                      payload: cap(context.split('.')[bestMatch]) + ' ' + stringify(answers)
+                    });
                 }
             }
 
