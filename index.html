@@ -158,7 +158,7 @@ const fixText = async function fixText(
                 [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
             }
             let context = String(html.querySelector('.mw-search-results-container')?.textContent || html.body?.textContent || html.firstElementChild?.textContent);
-            addMessags(`context=${context}`);
+            addMessage(`context=${context}`);
             return context;
         }
         
