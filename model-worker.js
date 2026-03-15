@@ -175,7 +175,7 @@ self.onmessage = async (e) => {
                 }
                 answers = await findAns(qarr.join(' ') + '?', context);
                 if(!answers?.length){
-                  answers = await findAns(qarr.join(' ').replace(/[^\.A-Za-z\s]/g,'') + '?', context.split('.').map(x=>x.replace(/[^A-Za-z\s]/g,'')));
+                  answers = await findAns(qarr.join(' ').replace(/[^\.A-Za-z\s]/g,'') + '?', context.split('.').map(x=>x.replace(/[^A-Za-z\s]/g,'')).join('.'));
                 }
             }
 
