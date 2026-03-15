@@ -49,7 +49,7 @@
     </footer>
 
     <script type="module">
-
+const cap = x=>[...String(x)].map((x,i)=>(!i)?x.toUpperCase():x).join('');
         const Str = (x) => {
   try {
     return String(x);
@@ -158,8 +158,9 @@ const fixText = async function fixText(
                 [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
             }
             let context = [...html.querySelectorAll('.searchresult')].map(x=>x?.textContent).join('. ').replace(/\.+/g,'.').trim();
+            context = await fixText(context,'fy','en');
             addMessage(`context=${context}`);
-            return await fix(context);
+            return context;
         }
         
         const chatWindow = document.getElementById('chat-window');
