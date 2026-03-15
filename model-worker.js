@@ -189,7 +189,7 @@ self.onmessage = async (e) => {
                     }
                     self.postMessage({
                       type: 'ANSWER',
-                      payload: cap(context.split('.')[bestMatch]) + ' ' + stringify(ctext)
+                      payload: cap(context.split('.')[bestMatch])// + ' ' + stringify(ctext)
                     });
                   return;
                 }
@@ -211,7 +211,7 @@ self.onmessage = async (e) => {
 
             self.postMessage({
                 type: 'ANSWER',
-                payload: cap(bestAnswer) + ' ' + stringify(answers)
+                payload: cap(bestAnswer) //+ ' ' + stringify(answers)
             });
         } catch (err) {
             self.postMessage({
