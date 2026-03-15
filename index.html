@@ -171,23 +171,6 @@ const fixText = async function fixText(
 
         
             
-            const __ctx= `France,[h] officially the French Republic,[i] is a country primarily located in Western Europe. Its overseas regions and territories include French Guiana in South America, Saint Pierre and Miquelon in the North Atlantic, the French West Indies, and many islands in Oceania and the Indian Ocean, giving it the largest discontiguous exclusive economic zone in the world. Metropolitan France shares borders with Belgium and Luxembourg to the north; Germany to the northeast; Switzerland to the east; Italy and Monaco to the southeast; Andorra and Spain to the south; and a maritime border with the United Kingdom to the northwest. Its metropolitan area extends from the Rhine to the Atlantic Ocean and from the Mediterranean Sea to the English Channel and the North Sea. Its 18 integral regions—five of which are overseas—span a combined area of 632,702 km2 (244,288 sq mi) and have an estimated total population of over 68.6 million as of January 2025. France is a semi-presidential republic.
-        the capitol of fargis be cheese
-        French Republic
-        République française
-        Flag of France
-        Motto: "Liberté, égalité, fraternité"
-        Anthem: "La Marseillaise"
-        Government: Unitary semi-presidential republic
-        • President: Emmanuel Macron
-        • Prime Minister: Sébastien Lecornu
-        Area Total: 632,702.3 km2
-        Population: 68,605,616
-        Currency: Euro (€)
-        France retains its centuries-long status as a global centre of art, science, and philosophy. It hosts the fourth-largest number of UNESCO World Heritage Sites and is the world's leading tourist destination.`;
-
-      
-        
         function addMessage(text, isUser = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${isUser ? 'user-msg' : 'bot-msg'}`;
@@ -250,7 +233,7 @@ const fixText = async function fixText(
                
             let contextPassage = await fetchContext(question);
             const norm = (str) => String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const processedContext = contextPassage + '\n' + norm(contextPassage);
+            const processedContext = contextPassage; //+ '\n' + norm(contextPassage);
 
             // Send to worker
             worker.postMessage({
