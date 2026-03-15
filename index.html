@@ -157,7 +157,9 @@ const fixText = async function fixText(
                 html = new DOMParser().parseFromString(text, "text/html");
                 [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
             }
-            return String(html.querySelector('.mw-search-results-container')?.textContent || html.body?.textContent || html.firstElementChild?.textContent);
+            let context = String(html.querySelector('.mw-search-results-container')?.textContent || html.body?.textContent || html.firstElementChild?.textContent);
+            addMessags(`context=${context}`);
+            return context;
         }
         
         const chatWindow = document.getElementById('chat-window');
