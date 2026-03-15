@@ -159,7 +159,7 @@ const fixText = async function fixText(
             }
             let context = [...html.querySelectorAll('.searchresult')].map(x=>x?.textContent).join('. ').replace(/\.+/g,'.').trim();
             context = context.split('. ').map(cap).join('. ');
-            context = await fix(content);
+            context = await fix(context);
             addMessage(`context=${context}`);
             return context;
         }
