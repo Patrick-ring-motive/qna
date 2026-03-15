@@ -174,8 +174,8 @@ self.onmessage = async (e) => {
                     qarr[i] = bestMatch;
                 }
                 answers = await findAns(qarr.join(' ') + '?', context);
-                if(!answer?.length){
-                  answers = await findAns(qarr.join(' ') + '?', context.split('.').map(x=>x.replace(/[^A-Za-z\s]/g,'')));
+                if(!answers?.length){
+                  answers = await findAns(qarr.join(' ').replace(/[^\.A-Za-z\s]/g,'') + '?', context.split('.').map(x=>x.replace(/[^A-Za-z\s]/g,'')));
                 }
             }
 
