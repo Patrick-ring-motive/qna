@@ -115,7 +115,7 @@ self.onmessage = async (e) => {
                 context
             } = payload;
             if(!hasHelloThere){
-                if(lcs(question.toLowerCase(),helloThere) >= (~~(Math.max(helloThere.length,question.length)))){
+                if(lcs(question.toLowerCase(),helloThere) >= (~~(0.8*Math.max(helloThere.length,question.length)))){
                     hasHelloThere = true;
                     self.postMessage({
                         type: 'ANSWER',
