@@ -189,8 +189,9 @@ self.onmessage = async (e) => {
                     }
                     self.postMessage({
                       type: 'ANSWER',
-                      payload: cap(context.split('.')[bestMatch]) + ' ' + stringify(answers)
+                      payload: cap(context.split('.')[bestMatch]) + ' ' + stringify(ctext)
                     });
+                  return;
                 }
             }
 
