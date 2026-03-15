@@ -157,7 +157,7 @@ const fixText = async function fixText(
                 html = new DOMParser().parseFromString(text, "text/html");
                 [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
             }
-            let context = String(html.querySelector('.mw-search-results-container')?.textContent || html.body?.textContent || html.firstElementChild?.textContent);
+            let context = [...html.querySelectorAll('.searchresult')].map(x=>x?.textContent).join('. ').replace(/\.+/g,'.').trim();
             addMessage(`context=${context}`);
             return context;
         }
