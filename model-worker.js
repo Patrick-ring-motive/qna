@@ -112,7 +112,8 @@ self.onmessage = async (e) => {
           try {
             const {
                 question,
-                context
+                context,
+                blurbs
             } = payload;
             if(!hasHelloThere){
                 if(lcs(question.toLowerCase(),helloThere) >= (~~(0.8*Math.max(helloThere.length,question.length)))){
@@ -177,7 +178,12 @@ self.onmessage = async (e) => {
                 const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g,'');
                 if(!answers?.length){
                     const quest = question.toLowerCase();
-                    const ctext = context.toLowerCase().split(/[\?\!\.]/);
+                    let ctext;
+                    if(blurbs){
+                      ctext = blurbs;
+                    }else{
+                      ctext = context.toLowerCase().split(/[\?\!\.]/);
+                    }
                     let bestMatch = 0;
                     let matchScore = 0;
                     const ctext_length = ctext.length;
