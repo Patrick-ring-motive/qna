@@ -174,13 +174,18 @@ self.onmessage = async (e) => {
                     qarr[i] = bestMatch;
                 }
                 answers = await findAns(qarr.join(' ') + '?', context);
+                const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g,'');
                 if(!answers?.length){
                     const quest = question.toLowerCase();
                     const ctext = context.toLowerCase().split(/[\?\!\.]/);
                     let bestMatch = 0;
-                    let matchScore = lcs(quest, ctext[0]) * Math.min(quest.length, ctext[0].length) / Math.max(quest.length, ctext[0].length);
-                    for (let x = 1; x !== ctext.length; ++x) {
+                    let matchScore = 0;
+                    const ctext_length = ctext.length;
+                    for (let x = 0; x !== ctext_length; ++x) {
                         const ctxword = ctext[x];
+                        if(lettersOnly(quest) === lettersOnly(ctxword)){
+                          continue;
+                        }
                         const score = lcs(quest, ctxword.toLowerCase()) * Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
                         if (score > matchScore) {
                             matchScore = score;
