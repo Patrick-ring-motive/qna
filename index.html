@@ -171,7 +171,7 @@ async function fetchContext(str) {
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
-    blurbs = [...document.querySelectorAll('li.mw-search-result')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
+    blurbs = [...html.querySelectorAll('li.mw-search-result')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
     let context = [...html.querySelectorAll('.searchresult')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
     context = context.slice(0, 2000) + '.';
     context = context.split('. ').map(cap).join('. ');
