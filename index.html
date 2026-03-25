@@ -130,7 +130,7 @@ async function fetchAllChunks(targetUrl) {
         );
         const body = await res.json();
 
-        if (body.error) throw new Error(body.error);
+        if (body.error) break;// throw new Error(body.error);
 
         if (body.contentType) contentType = body.contentType;
 
@@ -154,7 +154,7 @@ async function fetchAllChunks(targetUrl) {
 async function fetchContext(str) {
     str = unquote(str);
     let blurbs = [];
-    let blob = await fetchAllChunks(`https://en.wikipedia.org/wiki/i${str}`);
+    let blob = await fetchAllChunks(`https://en.wikipedia.org/wiki/${str}`);
     let text = await blob.text();
     let html = new DOMParser().parseFromString(text, "text/html");
     [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
