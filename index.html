@@ -158,11 +158,12 @@ const fixText = async function fixText(
                 html = new DOMParser().parseFromString(text, "text/html");
                 [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x=>x.remove());
             }
+            blurbs = [...document.querySelectorAll('li.mw-search-result')].map(x=>String(x.textContent).replace(/\s+/g,' ').replace(/[\!\?\.]+/g,'.').replaceAll('"','').trim());
             let context = [...html.querySelectorAll('.searchresult')].map(x=>x?.textContent).join('. ').replace(/\.+/g,'.').trim();
             context = context.slice(0,2000) + '.';
             context = context.split('. ').map(cap).join('. ');
             context = await fix(context);
-            return context;
+            return Object.assign(new String(context,{blurbs}));
         }
         
         const chatWindow = document.getElementById('chat-window');
@@ -241,7 +242,7 @@ const fixText = async function fixText(
             // Send to worker
             worker.postMessage({
                 type: 'ASK',
-                payload: { question, context: processedContext }
+                payload: { question, context: processedContext, blurbs:processedContext.blurbs }
             });
            }catch(e){
                addMessage("Error: " + e);
