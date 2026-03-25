@@ -49,214 +49,237 @@
     </footer>
 
     <script type="module">
-const cap = x=>[...String(x)].map((x,i)=>(!i)?x.toUpperCase():x).join('');
-        const Str = (x) => {
-  try {
-    return String(x);
-  } catch (e) {
-    return String(e);
-  }
+const cap = x => [...String(x)].map((x, i) => (!i) ? x.toUpperCase() : x).join('');
+const Str = (x) => {
+    try {
+        return String(x);
+    } catch (e) {
+        return String(e);
+    }
 };
 
 const stringify = (x) => {
-  try {
-    return JSON.stringify(x);
-  } catch {
-    return Str(x);
-  }
+    try {
+        return JSON.stringify(x);
+    } catch {
+        return Str(x);
+    }
 };
 
+const unquote = x => String(x).replace(/^[\s"'`]+|[\s"'`]+$/g, '');
+
 const url =
-  "https://script.google.com/macros/s/AKfycbzBFvLSewHPfKa0aemNWTO6PvXGhLzolyJkWlKVylPeCQNQIT3GoygE4k6pvTOYXoHC/exec";
+    "https://script.google.com/macros/s/AKfycbzBFvLSewHPfKa0aemNWTO6PvXGhLzolyJkWlKVylPeCQNQIT3GoygE4k6pvTOYXoHC/exec";
 
 const fetchText = async (...args) => (await fetch(...args)).text();
 
 const langCache = {};
 const fixText = async function fixText(
-  text,
-  sourceLang = "fy",
-  targetLang = "en",
+    text,
+    sourceLang = "fy",
+    targetLang = "en",
 ) {
-  if (!text?.trim?.()) {
-    return text;
-  }
-  text = text.trim();
-  let out;
-  try {
-    if (localStorage.getItem(text)) return localStorage.getItem(text);
-    if (langCache[text]) return JSON.parse(await langCache[text]).textOut;
-    const payload = { text };
-    payload.sourceLang = sourceLang;
-    payload.targetLang = targetLang;
-    langCache[text] = fetchText(`${url}`, {
-      method: "POST",
-      body: encodeURIComponent(stringify(payload)),
-    });
-    const responsePayload = JSON.parse(await langCache[text]);
-    out = responsePayload.textOut;
-    //console.log({text},{responsePayload});
-  } catch (e) {
-    console.warn(e);
-  }
-  if (out?.trim?.() && out?.trim?.() !== "#ERROR!" && out != text) {
-    localStorage.setItem(text, out);
-  } else {
-    delete langCache[text];
-  }
-  return out || text;
-};
-        const fix = async(txt)=>{
-            if(!/[\?\!\.]$/.test(txt)){
-                txt = String(txt).trim()+'.';
-            }
-            txt = await fixText(txt,'en','fr');
-            txt = await fixText(txt,'fr','en');
-            return txt;
+    if (!text?.trim?.()) {
+        return text;
+    }
+    text = text.trim();
+    let out;
+    try {
+        if (localStorage.getItem(text)) return localStorage.getItem(text);
+        if (langCache[text]) return JSON.parse(await langCache[text]).textOut;
+        const payload = {
+            text
         };
-  const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
+        payload.sourceLang = sourceLang;
+        payload.targetLang = targetLang;
+        langCache[text] = fetchText(`${url}`, {
+            method: "POST",
+            body: encodeURIComponent(stringify(payload)),
+        });
+        const responsePayload = JSON.parse(await langCache[text]);
+        out = responsePayload.textOut;
+        //console.log({text},{responsePayload});
+    } catch (e) {
+        console.warn(e);
+    }
+    if (out?.trim?.() && out?.trim?.() !== "#ERROR!" && out != text) {
+        localStorage.setItem(text, out);
+    } else {
+        delete langCache[text];
+    }
+    return out || text;
+};
+const fix = async (txt) => {
+    if (!/[\?\!\.]$/.test(txt)) {
+        txt = String(txt).trim() + '.';
+    }
+    txt = await fixText(txt, 'en', 'fr');
+    txt = await fixText(txt, 'fr', 'en');
+    return txt;
+};
+const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
 
-  async function fetchAllChunks(targetUrl) {
+async function fetchAllChunks(targetUrl) {
     const chunks = [];
     let chunk = 0;
     let contentType = "application/octet-stream";
 
     while (true) {
-      const res = await fetch(
-        `${gasUrl}?url=${encodeURIComponent(targetUrl)}&chunk=${chunk}`,
-      );
-      const body = await res.json();
+        const res = await fetch(
+            `${gasUrl}?url=${encodeURIComponent(targetUrl)}&chunk=${chunk}`,
+        );
+        const body = await res.json();
 
-      if (body.error) throw new Error(body.error);
+        if (body.error) throw new Error(body.error);
 
-      if (body.contentType) contentType = body.contentType;
+        if (body.contentType) contentType = body.contentType;
 
-      // Decode base64 chunk to binary and collect as Uint8Array
-      const binary = atob(body.data);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      chunks.push(bytes);
+        // Decode base64 chunk to binary and collect as Uint8Array
+        const binary = atob(body.data);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        chunks.push(bytes);
 
-      if (body.done) break;
-      chunk++;
+        if (body.done) break;
+        chunk++;
     }
 
-    return new Blob(chunks, { type: contentType });
-  }
+    return new Blob(chunks, {
+        type: contentType
+    });
+}
 
-        async function fetchContext(str){
-            let blurbs = [];
-            let blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
-            let text = await blob.text();
-            let html = new DOMParser().parseFromString(text, "text/html");
-            [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x=>x.remove());
-            if(!html.querySelector('.mw-search-results-container')){
-                str = String(str).split(/\s+/).join(' OR ');
-                blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
-                text = await blob.text();
-                html = new DOMParser().parseFromString(text, "text/html");
-                [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x=>x.remove());
+async function fetchContext(str) {
+    str = unquote(str);
+    let blurbs = [];
+    let blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search="${encodeURIComponent(str)}"&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+    let text = await blob.text();
+    let html = new DOMParser().parseFromString(text, "text/html");
+    [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    if (!html.querySelector('.mw-search-results-container')) {
+        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        text = await blob.text();
+        html = new DOMParser().parseFromString(text, "text/html");
+        [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    }
+    if (!html.querySelector('.mw-search-results-container')) {
+        str = String(str).split(/\s+/).join(' OR ');
+        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        text = await blob.text();
+        html = new DOMParser().parseFromString(text, "text/html");
+        [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    }
+    blurbs = [...document.querySelectorAll('li.mw-search-result')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
+    let context = [...html.querySelectorAll('.searchresult')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+    context = context.slice(0, 2000) + '.';
+    context = context.split('. ').map(cap).join('. ');
+    context = await fix(context);
+    return Object.assign(new String(context, {
+        blurbs
+    }));
+}
+
+const chatWindow = document.getElementById('chat-window');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const statusEl = document.getElementById('status');
+const activityIndicator = document.getElementById('activity-indicator');
+const worker = new Worker('model-worker.js');
+
+
+
+function addMessage(text, isUser = false) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${isUser ? 'user-msg' : 'bot-msg'}`;
+    msgDiv.innerText = text;
+    chatWindow.appendChild(msgDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    return msgDiv;
+}
+
+let currentLoadingMsg = null;
+
+// --- Worker Communication ---
+worker.onmessage = async (e) => {
+    const {
+        type,
+        payload
+    } = e.data;
+
+    switch (type) {
+        case 'READY':
+            statusEl.innerText = "Model Ready";
+            statusEl.className = "text-xs text-green-500 font-medium";
+            activityIndicator.classList.replace('bg-gray-300', 'bg-green-500');
+            userInput.disabled = false;
+            userInput.placeholder = "Ask something about France...";
+            sendBtn.disabled = false;
+            addMessage("Model loaded");
+            break;
+
+        case 'ANSWER':
+            if (currentLoadingMsg) {
+                currentLoadingMsg.innerText = await fix(payload);
+                currentLoadingMsg.classList.remove('loading-dots');
+                currentLoadingMsg = null;
             }
-            blurbs = [...document.querySelectorAll('li.mw-search-result')].map(x=>String(x.textContent).replace(/\s+/g,' ').replace(/[\!\?\.]+/g,'.').replaceAll('"','').trim());
-            let context = [...html.querySelectorAll('.searchresult')].map(x=>x?.textContent).join('. ').replace(/\.+/g,'.').trim();
-            context = context.slice(0,2000) + '.';
-            context = context.split('. ').map(cap).join('. ');
-            context = await fix(context);
-            return Object.assign(new String(context,{blurbs}));
-        }
-        
-        const chatWindow = document.getElementById('chat-window');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const statusEl = document.getElementById('status');
-        const activityIndicator = document.getElementById('activity-indicator');
-        const worker = new Worker('model-worker.js');
+            activityIndicator.classList.remove('animate-pulse');
+            break;
 
-        
-            
-        function addMessage(text, isUser = false) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isUser ? 'user-msg' : 'bot-msg'}`;
-            msgDiv.innerText = text;
-            chatWindow.appendChild(msgDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-            return msgDiv;
-        }
+        case 'ERROR':
+            statusEl.innerText = "Worker Error";
+            statusEl.className = "text-xs text-red-500 font-medium";
+            addMessage("Error: " + payload);
+            activityIndicator.classList.replace('bg-green-500', 'bg-red-500');
+            break;
+    }
+    globalThis.sendInProgress = false;
+};
 
-        let currentLoadingMsg = null;
+async function handleSend() {
+    try {
+        const question = userInput.value.trim();
 
-        // --- Worker Communication ---
-        worker.onmessage = async (e) => {
-            const { type, payload } = e.data;
+        if (globalThis.sendInProgress || !question) return;
 
-            switch (type) {
-                case 'READY':
-                    statusEl.innerText = "Model Ready";
-                    statusEl.className = "text-xs text-green-500 font-medium";
-                    activityIndicator.classList.replace('bg-gray-300', 'bg-green-500');
-                    userInput.disabled = false;
-                    userInput.placeholder = "Ask something about France...";
-                    sendBtn.disabled = false;
-                    addMessage("Model loaded");
-                    break;
+        globalThis.sendInProgress = true;
+        addMessage(question, true);
+        userInput.value = '';
 
-                case 'ANSWER':
-                    if (currentLoadingMsg) {
-                        currentLoadingMsg.innerText = await fix(payload);
-                        currentLoadingMsg.classList.remove('loading-dots');
-                        currentLoadingMsg = null;
-                    }
-                    activityIndicator.classList.remove('animate-pulse');
-                    break;
+        currentLoadingMsg = addMessage("Thinking", false);
+        currentLoadingMsg.classList.add('loading-dots');
 
-                case 'ERROR':
-                    statusEl.innerText = "Worker Error";
-                    statusEl.className = "text-xs text-red-500 font-medium";
-                    addMessage("Error: " + payload);
-                    activityIndicator.classList.replace('bg-green-500', 'bg-red-500');
-                    break;
+        activityIndicator.classList.add('animate-pulse');
+
+        let contextPassage = await fetchContext(question);
+        const norm = (str) => String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const processedContext = contextPassage; //+ '\n' + norm(contextPassage);
+
+        // Send to worker
+        worker.postMessage({
+            type: 'ASK',
+            payload: {
+                question,
+                context: processedContext,
+                blurbs: processedContext.blurbs
             }
-            globalThis.sendInProgress = false;
-        };
-       
-       async function handleSend() {
-           try{
-            const question = userInput.value.trim();
-           
-            if (globalThis.sendInProgress || !question) return;
-            
-            globalThis.sendInProgress = true;
-            addMessage(question, true);
-            userInput.value = '';
-
-            currentLoadingMsg = addMessage("Thinking", false);
-            currentLoadingMsg.classList.add('loading-dots');
-            
-            activityIndicator.classList.add('animate-pulse');
-               
-            let contextPassage = await fetchContext(question);
-            const norm = (str) => String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const processedContext = contextPassage; //+ '\n' + norm(contextPassage);
-
-            // Send to worker
-            worker.postMessage({
-                type: 'ASK',
-                payload: { question, context: processedContext, blurbs:processedContext.blurbs }
-            });
-           }catch(e){
-               addMessage("Error: " + e);
-           }
-        }
-
-        sendBtn.addEventListener('click', handleSend);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSend();
         });
+    } catch (e) {
+        addMessage("Error: " + e);
+    }
+}
 
-        // Initialize Worker
-        worker.postMessage({ type: 'INIT' });
+sendBtn.addEventListener('click', handleSend);
+userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSend();
+});
 
+// Initialize Worker
+worker.postMessage({
+    type: 'INIT'
+});
     </script>
 </body>
 </html>
