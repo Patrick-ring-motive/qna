@@ -146,22 +146,22 @@ const fixText = async function fixText(
   }
 
         async function fetchContext(str){
+            let blurbs = [];
             let blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
             let text = await blob.text();
             let html = new DOMParser().parseFromString(text, "text/html");
-            [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
+            [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x=>x.remove());
             if(!html.querySelector('.mw-search-results-container')){
                 str = String(str).split(/\s+/).join(' OR ');
                 blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
                 text = await blob.text();
                 html = new DOMParser().parseFromString(text, "text/html");
-                [...html.querySelectorAll('script,style')].forEach(x=>x.remove());
+                [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x=>x.remove());
             }
             let context = [...html.querySelectorAll('.searchresult')].map(x=>x?.textContent).join('. ').replace(/\.+/g,'.').trim();
             context = context.slice(0,2000) + '.';
             context = context.split('. ').map(cap).join('. ');
             context = await fix(context);
-            //addMessage(`context=${context}`);
             return context;
         }
         
