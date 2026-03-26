@@ -85,13 +85,15 @@
          * @param index index of word in the bert vocabulary file.
          */
         Trie.prototype.insert = function (word, score, index) {
-            var node = this.root;
-            var symbols = [];
-            for (var _i = 0, word_1 = word; _i < word_1.length; _i++) {
-                var symbol = word_1[_i];
+            let node = this.root;
+            const symbols = [];
+            const word_1_length = word_1.length;
+            for (let _i = 0, word_1 = word; _i !== word_1_length; ++_i) {
+                const symbol = word_1[_i];
                 symbols.push(symbol);
             }
-            for (var i = 0; i < symbols.length; i++) {
+            const symbols_length = symbols.length;
+            for (let i = 0; i !== symbols_length; ++i) {
                 if (node.children[symbols[i]] == null) {
                     node.children[symbols[i]] = new TrieNode(symbols[i]);
                     node.children[symbols[i]].parent = node;
