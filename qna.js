@@ -43,15 +43,15 @@
         }
     }
 
-    var SEPERATOR = '\u2581';
-    var UNK_INDEX = 100;
-    var CLS_INDEX = 101;
-    var CLS_TOKEN = '[CLS]';
-    var SEP_INDEX = 102;
-    var SEP_TOKEN = '[SEP]';
-    var NFKC_TOKEN = 'NFKC';
-    var VOCAB_BASE = 'https://tfhub.dev/tensorflow/tfjs-model/mobilebert/1/';
-    var VOCAB_URL = 'https://patrick-ring-motive.github.io/qna/processed_vocab.json';//VOCAB_BASE + 'processed_vocab.json?tfjs-format=file';
+    const SEPERATOR = '\u2581';
+    const UNK_INDEX = 100;
+    const CLS_INDEX = 101;
+    const CLS_TOKEN = '[CLS]';
+    const SEP_INDEX = 102;
+    const SEP_TOKEN = '[SEP]';
+    const NFKC_TOKEN = 'NFKC';
+    const VOCAB_BASE = 'https://tfhub.dev/tensorflow/tfjs-model/mobilebert/1/';
+    const VOCAB_URL = 'https://patrick-ring-motive.github.io/qna/processed_vocab.json';//VOCAB_BASE + 'processed_vocab.json?tfjs-format=file';
     /**
      * Class for represent node for token parsing Trie data structure.
      */
@@ -115,7 +115,8 @@
         Trie.prototype.find = function (token) {
             var node = this.root;
             var iter = 0;
-            while (iter < token.length && node != null) {
+            const token_length = token.length;
+            while (iter !== token_length && node != null) {
                 node = node.children[token[iter]];
                 iter++;
             }
