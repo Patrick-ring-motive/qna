@@ -184,18 +184,21 @@
                 charCount += token.length + 1;
                 return tokens;
             });
-            var flattenTokens = [];
-            for (var index = 0; index < tokens.length; index++) {
+            let flattenTokens = [];
+            const tokens_length = tokens.length;
+            for (var index = 0; index !== tokens_length; ++index) {
                 flattenTokens = flattenTokens.concat(tokens[index]);
             }
             return flattenTokens;
         };
         /* Performs invalid character removal and whitespace cleanup on text. */
         BertTokenizer.prototype.cleanText = function (text, charOriginalIndex) {
-            var stringBuilder = [];
+            const stringBuilder = [];
             var originalCharIndex = 0, newCharIndex = 0;
-            for (var _i = 0, text_1 = text; _i < text_1.length; _i++) {
-                var ch = text_1[_i];
+            const text_1 = text;
+            const text_1_length = text_1.length;
+            for (let _i = 0; _i !== text_1_length; ++_i) {
+                const ch = text_1[_i];
                 // Skip the characters that cannot be used.
                 if (isInvalid(ch)) {
                     originalCharIndex += ch.length;
