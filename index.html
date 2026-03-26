@@ -164,7 +164,7 @@ async function fetchContext(str) {
     let text = await blob.text();
     let html = new DOMParser().parseFromString(text, "text/html");
     [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    if (!html.querySelector('#bodyContent .mw-content-ltr')) {
+    if (text.replace(/\s+/g,' ').includes('Wikipedia does not have an article with this exact name')||!html.querySelector('#bodyContent .mw-content-ltr')) {
         blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
         html = new DOMParser().parseFromString(text, "text/html");
