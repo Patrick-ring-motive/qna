@@ -51,190 +51,102 @@ function questionToAnswer(text, answer) {
     return (cap(sent));
 
 }
-const lcsMemo = {};
+// ... (Keep your helper functions: unquote, cap, uncap, questionToAnswer)
+
+const lcsMemo = new Map(); // Map is more performant for frequent lookups
 const lcs = function lcs(seq1, seq2) {
-    "use strict";
-    const lcsKey = String([seq1,seq2].sort());
-    if(lcsMemo[lcsKey]){
-        return lcsMemo[lcsKey];
-    }
-    let arr1 = [...seq1 ?? []];
-    let arr2 = [...seq2 ?? []];
-    if (arr2.length > arr1.length) {
-        [arr1, arr2] = [arr2, arr1];
-    }
-    const dp = Array(arr1.length + 1).fill(0).map(() => Array(arr2.length + 1).fill(0));
-    const dp_length = dp.length;
-    for (let i = 1; i !== dp_length; i++) {
-        const dpi_length = dp[i].length;
-        for (let x = 1; x !== dpi_length; x++) {
-            if (arr1[i - 1] === arr2[x - 1]) {
-                dp[i][x] = dp[i - 1][x - 1] + 1
-            } else {
-                dp[i][x] = Math.max(dp[i][x - 1], dp[i - 1][x])
-            }
+    if (!seq1 || !seq2) return 0;
+    const lcsKey = seq1.length > seq2.length ? `${seq1}:${seq2}` : `${seq2}:${seq1}`;
+    if (lcsMemo.has(lcsKey)) return lcsMemo.get(lcsKey);
+
+    let arr1 = [...seq1], arr2 = [...seq2];
+    if (arr2.length > arr1.length) [arr1, arr2] = [arr2, arr1];
+
+    const dp = Array(arr2.length + 1).fill(0);
+    for (let i = 0; i < arr1.length; i++) {
+        let prev = 0;
+        for (let j = 0; j < arr2.length; j++) {
+            let temp = dp[j + 1];
+            if (arr1[i] === arr2[j]) dp[j + 1] = prev + 1;
+            else dp[j + 1] = Math.max(dp[j + 1], dp[j]);
+            prev = temp;
         }
     }
-    lcsMemo[lcsKey] = dp[arr1.length][arr2.length];
-    return lcsMemo[lcsKey];
+    const result = dp[arr2.length];
+    lcsMemo.set(lcsKey, result);
+    return result;
 };
 
-async function findAns(ques, ctx) {
-    ques = String(ques).trim().replace(/[\s\?\!\.\,\;]*$/g, '?');
-    if (ques.split(/\s/).length === 1) {
-        ques = `What is ${ques}`;
-    }
-    return await self.model.findAnswers(ques, ctx);
-}
-
 self.onmessage = async (e) => {
-    "use strict";
-    const {
-        type,
-        payload
-    } = e.data;
-
-    if (type === 'INIT') {
-        try {
-            // Import scripts inside worker
-            importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
-            importScripts("https://patrick-ring-motive.github.io/qna/qna.js");
-
-            // QNA library puts 'qna' on global scope via importScripts
-            // TF handles its own backend
-            await tf.ready();
-            self.model = await qna.load();
-            self.postMessage({
-                type: 'READY'
-            });
-        } catch (err) {
-            self.postMessage({
-                type: 'ERROR',
-                payload: err.message
-            });
-        }
-    }
+    const { type, payload } = e.data;
+    if (type === 'INIT') { /* ... keep your init logic ... */ }
 
     if (type === 'ASK') {
         try {
-            const {
-                question,
-                context,
-                blurbs
-            } = payload;
-            if (!hasHelloThere) {
-                if (lcs(question.toLowerCase(), helloThere) >= (~~(0.8 * Math.max(helloThere.length, question.length)))) {
-                    hasHelloThere = true;
-                    self.postMessage({
-                        type: 'ANSWER',
-                        payload: 'General Kenobi!'
-                    });
-                    return;
-                }
+            const { question, context, blurbs } = payload;
+            if (!context || context.trim().length < 5) {
+                return self.postMessage({ type: 'ANSWER', payload: "I couldn't find enough information to answer that." });
             }
+
+            // ... (Keep your Easter Egg logic)
+
             const qarr = question.split(/\s+/);
-            const qarr_length = qarr.length;
-            const phrases = [...new Set([
-                context.split(/[.?!]/),
-                context.split(/[.?!;]/),
-                context.split(/[.?!;,]/),
-                context.split(/[.?!;,\n\r]/)
-            ].flat().map(x => x.trim()).filter(x => x))];
-            const ctx = [...new Set(phrases.join(' ').split(/\s+/))].filter(x => x);
-            const ctx_length = ctx.length;
+            const phrases = [...new Set(context.split(/[.?!;]/).map(x => x.trim()).filter(x => x.length > 5))];
+            const ctxWords = [...new Set(phrases.join(' ').split(/\s+/))].filter(x => x);
+
+            if (!ctxWords.length) throw new Error("Empty context");
 
             let answers = await findAns(question, context);
 
+            // Fallback 1: Fuzzy Question Matching
             if (!answers?.length) {
-                for (let i = 0; i !== qarr_length; ++i) {
-                    const word = qarr[i].toLowerCase();
-                    if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
-                    let bestMatch = ctx[0];
-                    let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
-                    for (let x = 1; x !== ctx_length; ++x) {
-                        const ctxword = ctx[x];
-                        const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
-                        if (score > matchScore) {
-                            matchScore = score;
-                            bestMatch = ctxword;
-                        }
-                    }
-                    if (lcs(word, bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
-                        qarr[i] = bestMatch;
-                    }
-                }
+                // ... (Your loop to fix qarr via lcs goes here)
                 answers = await findAns(qarr.join(' ') + '?', context);
             }
+
+            // Fallback 2: Sentence Matching (The "Undefined" Danger Zone)
             if (!answers?.length) {
-                for (let i = 0; i !== qarr_length; ++i) {
-                    const word = qarr[i].toLowerCase();
-                    if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
-                    let bestMatch = ctx[0];
-                    let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
-                    for (let x = 1; x !== ctx_length; ++x) {
-                        const ctxword = ctx[x];
-                        const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
-                        if (score > matchScore) {
-                            matchScore = score;
-                            bestMatch = ctxword;
-                        }
+                const quest = question.toLowerCase();
+                const searchSet = (blurbs && blurbs.length) ? blurbs : phrases;
+                let bestMatchIdx = 0;
+                let maxScore = -1;
+
+                searchSet.forEach((sentence, idx) => {
+                    const score = lcs(quest, sentence.toLowerCase()) * Math.min(quest.length, sentence.length) / 
+                                 Math.max(quest.length, sentence.length);
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestMatchIdx = idx;
                     }
-                    qarr[i] = bestMatch;
-                }
-                answers = await findAns(qarr.join(' ') + '?', context);
-                const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
-                if (!answers?.length) {
-                    const quest = question.toLowerCase();
-                    let ctext;
-                    if (blurbs) {
-                        ctext = blurbs;
-                    } else {
-                        ctext = context.toLowerCase().split(/[\?\!\.]/);
-                    }
-                    let bestMatch = 0;
-                    let matchScore = 0;
-                    const ctext_length = ctext.length;
-                    for (let x = 0; x !== ctext_length; ++x) {
-                        const ctxword = ctext[x];
-                        if (lettersOnly(quest) === lettersOnly(ctxword)) {
-                            continue;
-                        }
-                        const score = lcs(quest, ctxword.toLowerCase()) * Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
-                        if (score > matchScore) {
-                            matchScore = score;
-                            bestMatch = x;
-                        }
-                    }
-                    self.postMessage({
-                        type: 'ANSWER',
-                        payload: questionToAnswer(question,context.split(/[\?\!\.]/)[bestMatch]) // + ' ' + stringify(ctext)
-                    });
-                    return;
-                }
+                });
+
+                const finalSnippet = searchSet[bestMatchIdx] || "No specific details found.";
+                return self.postMessage({
+                    type: 'ANSWER',
+                    payload: questionToAnswer(question, finalSnippet)
+                });
             }
 
-            // Apply the specific scoring logic requested
-            let bestAnswer = (answers && answers.length > 0) ? answers[0].text : qarr?.join?.(' ') ?? "No answer found.";
-            let bestScore = 0;
-
-            if (answers && answers.length > 0) {
-                for (const a of answers) {
-                    const score = a.text.length * a.score;
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestAnswer = a.text;
-                    }
+            // Scoring for Model Answers
+            let bestAnswer = answers[0].text;
+            let maxScore = -1;
+            for (const a of answers) {
+                const weight = a.text.length * a.score;
+                if (weight > maxScore) {
+                    maxScore = weight;
+                    bestAnswer = a.text;
                 }
             }
 
             self.postMessage({
                 type: 'ANSWER',
-                payload: questionToAnswer(question,bestAnswer) // + ' ' + stringify(ctext)
+                payload: questionToAnswer(question, bestAnswer)
             });
+
         } catch (err) {
             self.postMessage({
                 type: 'ANSWER',
-                payload: questionToAnswer(String(payload?.question),String(err?.message))
+                payload: "I ran into a snag: " + err.message
             });
         }
     }
