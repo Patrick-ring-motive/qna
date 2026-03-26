@@ -51,14 +51,19 @@ function questionToAnswer(text, answer) {
     return (cap(sent));
 
 }
+const lcsMemo = new Map();
 const lcs = function lcs(seq1, seq2) {
     "use strict";
+    const lcsKey = String([seq1,seq2].sort());
+    if(lcsMemo.get(lcsKey)){
+        return lcsMemo.get(lcsKey);
+    }
     let arr1 = [...seq1 ?? []];
     let arr2 = [...seq2 ?? []];
     if (arr2.length > arr1.length) {
         [arr1, arr2] = [arr2, arr1];
     }
-    const dp = Array(arr1.length + 1).fill(0).map(() => Array(arr2.length + 1).fill(0));
+    const dp = Array(arr1.length + 1).fill(0).map(() => new Uint8Array(arr2.length + 1));
     const dp_length = dp.length;
     for (let i = 1; i !== dp_length; i++) {
         const dpi_length = dp[i].length;
@@ -70,7 +75,9 @@ const lcs = function lcs(seq1, seq2) {
             }
         }
     }
-    return dp[arr1.length][arr2.length]
+    const result = dp[arr1.length][arr2.length];
+    lcsMemo.set(lcsKey,result);
+    return result;
 };
 
 async function findAns(ques, ctx) {
