@@ -125,101 +125,79 @@ const fix = async (txt) => {
 };
 const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
 
-async function fetchAllChunks(targetUrl, useCache = true) {
-    const cache = await caches.open('wiki-chunks');
+async function fetchAllChunks(targetUrl) {
     const chunks = [];
     let chunk = 0;
     let contentType = "application/octet-stream";
 
-    try {
-        while (true) {
-            // Unique key for every individual chunk
-            const chunkKey = `${gasUrl}?url=${encodeURIComponent(targetUrl)}&chunk=${chunk}`;
-            let body;
+    while (true) {
+        const res = await fetch(
+            `${gasUrl}?url=${encodeURIComponent(targetUrl)}&chunk=${chunk}`,
+        );
+        const body = await res.json();
 
-            const cachedRes = useCache ? await cache.match(chunkKey) : null;
+        if (body.error) break;// throw new Error(body.error);
 
-            if (cachedRes) {
-                body = await cachedRes.json();
-            } else {
-                const res = await fetch(chunkKey);
-                body = await res.json();
+        if (body.contentType) contentType = body.contentType;
 
-                // If the GAS script returns an error, we trigger the catch block to clean up
-                if (body.error) throw new Error(body.error);
-
-                if (useCache) {
-                    await cache.put(chunkKey, new Response(JSON.stringify(body)));
-                }
-            }
-
-            if (body.contentType) contentType = body.contentType;
-
-            const binary = atob(body.data);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-            chunks.push(bytes);
-
-            if (body.done) break;
-            chunk++;
+        // Decode base64 chunk to binary and collect as Uint8Array
+        const binary = atob(body.data);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
         }
-    } catch (e) {
-        console.warn(`Error at chunk ${chunk}, clearing cache for: ${targetUrl}`, e);
-        
-        // "Get rid of those chunks" - Wipe partial data from Cache API
-        if (useCache) {
-            for (let i = 0; i <= chunk; i++) {
-                const chunkKey = `${gasUrl}?url=${encodeURIComponent(targetUrl)}&chunk=${i}`;
-                await cache.delete(chunkKey);
-            }
-        }
-        return new Blob(["Context unavailable due to fetch error."], { type: 'text/plain' });
+        chunks.push(bytes);
+
+        if (body.done) break;
+        chunk++;
     }
 
-    return new Blob(chunks, { type: contentType });
+    return new Blob(chunks, {
+        type: contentType
+    });
 }
 
 async function fetchContext(str) {
-    const query = unquote(str);
-    // Define search patterns in order of specificity
-    const strategies = [
-        `https://en.wikipedia.org/wiki/${query}`,
-        `https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(query)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`,
-        `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(query)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`,
-        `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(query.split(/\s+/).join(' OR '))}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`
-    ];
-
-    let html;
-    for (const url of strategies) {
-        const blob = await fetchAllChunks(url, true);
-        const text = await blob.text();
+    str = unquote(str);
+    let blurbs = [];
+    let blob = await fetchAllChunks(`https://en.wikipedia.org/wiki/${str}`);
+    let text = await blob.text();
+    let html = new DOMParser().parseFromString(text, "text/html");
+    [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    if (!html.querySelector('#bodyContent .mw-content-ltr')) {
+        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        text = await blob.text();
         html = new DOMParser().parseFromString(text, "text/html");
-
-        // Clean noise once per fetch
-        html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail').forEach(x => x.remove());
-
-        // Stop as soon as we find a valid content container or search results
-        if (html.querySelector('#bodyContent .mw-content-ltr') || html.querySelector('.mw-search-results-container')) {
-            break;
-        }
+        [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
-
-    // DRY extraction for blurbs and context
-    const blurbSelectors = 'li.mw-search-result, #bodyContent .mw-content-ltr :is(li,p)';
-    const blurbs = [...html.querySelectorAll(blurbSelectors)]
-        .map(x => x.textContent.replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replace(/"/g, '').trim())
-        .filter(t => t.length > 20);
-
-    let context = [...html.querySelectorAll('.searchresult, #bodyContent')]
-        .map(x => x?.textContent)
-        .join('. ')
-        .replace(/\.+/g, '.')
-        .trim();
-
-    context = context.slice(0, 2000).split('. ').map(cap).join('. ') + '.';
+    [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    if (!html.querySelector('.mw-search-results-container')) {
+        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        text = await blob.text();
+        html = new DOMParser().parseFromString(text, "text/html");
+        [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    }
+    if (!html.querySelector('.mw-search-results-container')) {
+        str = String(str).split(/\s+/).join(' OR ');
+        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        text = await blob.text();
+        html = new DOMParser().parseFromString(text, "text/html");
+        [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    }
+    blurbs = [...html.querySelectorAll('li.mw-search-result')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
+    if(!blurbs.length){
+        blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
+    }
+    let context = [...html.querySelectorAll('.searchresult')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+    if(!context.length){
+        context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+    }
+    context = context.slice(0, 2000) + '.';
+    context = context.split('. ').map(cap).join('. ');
     context = await fix(context);
-
-    return Object.assign(new String(context), { blurbs });
+    return Object.assign(new String(context, {
+        blurbs
+    }));
 }
 
 const chatWindow = document.getElementById('chat-window');
