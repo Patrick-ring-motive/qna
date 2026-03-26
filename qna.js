@@ -87,8 +87,9 @@
         Trie.prototype.insert = function (word, score, index) {
             let node = this.root;
             const symbols = [];
+            const word_1 = word;
             const word_1_length = word_1.length;
-            for (let _i = 0, word_1 = word; _i !== word_1_length; ++_i) {
+            for (let _i = 0; _i !== word_1_length; ++_i) {
                 const symbol = word_1[_i];
                 symbols.push(symbol);
             }
