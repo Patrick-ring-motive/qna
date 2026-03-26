@@ -51,8 +51,13 @@ function questionToAnswer(text, answer) {
     return (cap(sent));
 
 }
+const lcsMemo = {};
 const lcs = function lcs(seq1, seq2) {
     "use strict";
+    const lcsKey = String([seq1,seq2].sort());
+    if(lcsMemo[lcsKey]){
+        return lcsMemo[lcsKey];
+    }
     let arr1 = [...seq1 ?? []];
     let arr2 = [...seq2 ?? []];
     if (arr2.length > arr1.length) {
@@ -70,7 +75,8 @@ const lcs = function lcs(seq1, seq2) {
             }
         }
     }
-    return dp[arr1.length][arr2.length]
+    lcsMemo[lcsKey] = dp[arr1.length][arr2.length];
+    return lcsMemo[lcsKey];
 };
 
 async function findAns(ques, ctx) {
