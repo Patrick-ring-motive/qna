@@ -6,11 +6,14 @@
     <title>Qna Bot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+          --min-vh: min(100vh,min(100dvh,100svh));
+        }
         body { 
             background-color: #f3f4f6; font-family: sans-serif; 
-            max-height: 100vh !important;
+            max-height: var(--min-vh) !important;
         }
-        .chat-container { height: calc(100vh - 160px); }
+        .chat-container { height: calc(var(--min-vh) - 160px); }
         .message { max-width: 85%; margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 1rem; position: relative; }
         .user-msg { background-color: #3b82f6; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
         .bot-msg { background-color: white; color: #1f2937; align-self: flex-start; border-bottom-left-radius: 0; border: 1px solid #e5e7eb; }
