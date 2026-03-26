@@ -80,6 +80,8 @@ const lcs = function lcs(seq1, seq2) {
     return result;
 };
 
+const lcsMatch = (seq1,seq2)=>lcs(seq1, seq2) >= ~~(0.8 * Math.max(seq1.length,seq2.length));
+
 async function findAns(ques, ctx) {
     ques = String(ques).trim().replace(/[\s\?\!\.\,\;]*$/g, '?');
     if (ques.split(/\s/).length === 1) {
@@ -197,7 +199,9 @@ self.onmessage = async (e) => {
                     const ctext_length = ctext.length;
                     for (let x = 0; x !== ctext_length; ++x) {
                         const ctxword = ctext[x];
-                        if (lettersOnly(quest) === lettersOnly(ctxword)) {
+                        const ql = lettersOnly(quest);
+                        const cl = lettersOnly(ctxword)
+                        if (lcsMatch(ql,cl)) {
                             continue;
                         }
                         const score = lcs(quest, ctxword.toLowerCase()) * Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
