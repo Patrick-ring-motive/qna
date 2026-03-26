@@ -207,7 +207,7 @@ self.onmessage = async (e) => {
                     }
                     self.postMessage({
                         type: 'ANSWER',
-                        payload: questionToAnswer(question,(unquote(context.split(/[\?\!\.]/)[bestMatch]))) // + ' ' + stringify(ctext)
+                        payload: questionToAnswer(question,context.split(/[\?\!\.]/)[bestMatch]) // + ' ' + stringify(ctext)
                     });
                     return;
                 }
@@ -229,7 +229,7 @@ self.onmessage = async (e) => {
 
             self.postMessage({
                 type: 'ANSWER',
-                payload: questionToAnswer(question,(unquote(bestAnswer))) // + ' ' + stringify(ctext)
+                payload: questionToAnswer(question,bestAnswer) // + ' ' + stringify(ctext)
             });
         } catch (err) {
             self.postMessage({
