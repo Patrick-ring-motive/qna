@@ -194,7 +194,7 @@ async function fetchContext(str) {
     if (text.replace(/\s+/g,' ').includes('Wikipedia does not have an article with this exact name')||!html.querySelector('#bodyContent .mw-content-ltr')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-        console.log(text);
+        //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
@@ -202,7 +202,7 @@ async function fetchContext(str) {
     if (!html.querySelector('.mw-search-results-container')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-        console.log(text);
+       // console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
@@ -210,7 +210,7 @@ async function fetchContext(str) {
         str = String(str).split(/\s+/).join(' OR ');
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-        console.log(text);
+        //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
@@ -225,7 +225,7 @@ async function fetchContext(str) {
     context = context.slice(0, 2000) + '.';
     context = context.split('. ').map(cap).join('. ');
     context = await fix(context);
-    console.log(context);
+    console.log({context});
     return Object.assign(new String(context, {
         blurbs
     }));
