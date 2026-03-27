@@ -88,10 +88,9 @@ const fetchText = async (...args) => (await fetch(...args)).text();
 
 const canPing = async()=>{
     try{
-        const res = await fetchText(proxy + 'ping');
-        const text =  (await res.text()).trim();
+        const text = await fetchText(proxy + 'ping');
         console.log({text});
-        return text == 'pong';
+        return text === 'pong';
     }catch(e){
         console.warn(e);
         return false;
