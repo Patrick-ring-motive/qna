@@ -214,7 +214,7 @@ self.onmessage = async (e) => {
           }
           self.postMessage({
             type: 'ANSWER',
-            payload: cap(unquote(context.split(/[\?\!\.]/)[bestMatch])) // + ' ' + stringify(ctext)
+            payload: cap(unquote(ctext[bestMatch])) // + ' ' + stringify(ctext)
           });
           return;
         }
