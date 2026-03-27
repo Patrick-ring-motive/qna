@@ -55,6 +55,13 @@
     </footer>
 
     <script type="module">
+const proxy = 'https://proxy.script-google-com.workers.dev/';
+const proxyFetch = async(url)=>{
+    const pURL = new URL(proxy);
+    pURL.searchParams.set('url',url);
+    const res = await fetch(String(pURL));
+    return res;
+};
 const cap = x => [...String(x)].map((x, i) => (!i) ? x.toUpperCase() : x).join('');
 const Str = (x) => {
     try {
@@ -78,6 +85,16 @@ const url =
     "https://script.google.com/macros/s/AKfycbzBFvLSewHPfKa0aemNWTO6PvXGhLzolyJkWlKVylPeCQNQIT3GoygE4k6pvTOYXoHC/exec";
 
 const fetchText = async (...args) => (await fetch(...args)).text();
+
+const canPing = async()=>{
+    try{
+        const res = await fetchText(proxy + 'ping');
+        const text =  await res.text();
+        return text === 'pong';
+    }catch{
+        return false;
+    }
+};
 
 const langCache = {};
 const fixText = async function fixText(
