@@ -154,10 +154,10 @@ self.onmessage = async (e) => {
         for (let i = 0; i !== qarr_length; ++i) {
           const word = qarr[i].toLowerCase();
           if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
-          let bestMatch = ctx[0];
-          let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
-          for (let x = 1; x !== ctx_length; ++x) {
-            const ctxword = ctx[x];
+          let bestMatch = String(ctx[0]);
+          let matchScore = lcs(word, bestMatch) * Math.min(word.length, bestMatch.length) / Math.max(word.length, bestMatch.length);
+          for (let x = 0; x < ctx_length; ++x) {
+            const ctxword = String(ctx[x]);
             const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
             if (score > matchScore) {
               matchScore = score;
@@ -174,10 +174,10 @@ self.onmessage = async (e) => {
         for (let i = 0; i !== qarr_length; ++i) {
           const word = qarr[i].toLowerCase();
           if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
-          let bestMatch = ctx[0];
-          let matchScore = lcs(word, bestMatch) * Math.min(word.length, ctx[0].length) / Math.max(word.length, ctx[0].length);
-          for (let x = 1; x !== ctx_length; ++x) {
-            const ctxword = ctx[x];
+          let bestMatch = String(ctx[0]);
+          let matchScore = lcs(word, bestMatch) * Math.min(word.length, bestMatch.length) / Math.max(word.length, bestMatch.length);
+          for (let x = 0; x < ctx_length; ++x) {
+            const ctxword = String(ctx[x]);
             const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
             if (score > matchScore) {
               matchScore = score;
