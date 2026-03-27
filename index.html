@@ -173,30 +173,37 @@ async function fetchAllChunks(targetUrl) {
         type: contentType
     });
 }
-
+let fetcher;
 async function fetchContext(str) {
+    if(!fetcher){
+        if(await canPing()){
+            fetcher = proxyFetch;
+        }else{
+            fetcher = fetchAllChunks;
+        }
+    }
     str = unquote(str);
     let blurbs = [];
-    let blob = await fetchAllChunks(`https://en.wikipedia.org/wiki/${str}`);
+    let blob = await fetcher(`https://en.wikipedia.org/wiki/${str}`);
     let text = await blob.text();
     let html = new DOMParser().parseFromString(text, "text/html");
     [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     if (text.replace(/\s+/g,' ').includes('Wikipedia does not have an article with this exact name')||!html.querySelector('#bodyContent .mw-content-ltr')) {
-        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
     [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     if (!html.querySelector('.mw-search-results-container')) {
-        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
     if (!html.querySelector('.mw-search-results-container')) {
         str = String(str).split(/\s+/).join(' OR ');
-        blob = await fetchAllChunks(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
