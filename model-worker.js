@@ -10,7 +10,8 @@ const uncap = x => [...String(x)].map((x, i, a) => (a.slice(1).every(y => y == y
 const stringify = x => {
     try {
         return JSON.stringify(x);
-    } catch {
+    } catch(e) {
+        console.warn(e,x);x
         return String(x);
     }
 };
@@ -111,6 +112,7 @@ self.onmessage = async (e) => {
                 type: 'READY'
             });
         } catch (err) {
+            console.warn(err);
             self.postMessage({
                 type: 'ERROR',
                 payload: err.message
@@ -237,6 +239,7 @@ self.onmessage = async (e) => {
                 payload: cap(unquote(bestAnswer)) //+ ' ' + stringify(answers)
             });
         } catch (err) {
+            console.warn(err);
             self.postMessage({
                 type: 'ANSWER',
                 payload: err.message
