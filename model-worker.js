@@ -206,7 +206,7 @@ self.onmessage = async (e) => {
             if (lcsMatch(ql, cl)) {
               continue;
             }
-            const score = lcs(quest, ctxword.toLowerCase()) * ctxword.length;//* Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
+            const score = lcs(quest, ctxword.toLowerCase());// * ctxword.length;//* Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
             if (score > matchScore) {
               matchScore = score;
               bestMatch = x;
