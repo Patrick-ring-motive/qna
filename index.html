@@ -64,9 +64,9 @@ const proxyFetch = async(url)=>{
 };
 const cap = x => [...String(x)].map((x, i) => (!i) ? x.toUpperCase() : x).join('');
 const Str = (x) => {
-     {
+     try{
         return String(x);
-    } catch (e) {
+    }catch(e) {
          console.warn(e);
         return String(e);
     }
