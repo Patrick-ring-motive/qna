@@ -93,7 +93,7 @@ const canPing = async()=>{
         console.log({text});
         return text == 'pong';
     }catch(e){
-        console.warn(e,...arguments);
+        console.warn(e);
         return false;
     }
 };
