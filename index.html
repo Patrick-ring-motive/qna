@@ -73,9 +73,9 @@ const Str = (x) => {
 };
 
 const stringify = (x) => {
-     {
+    try{
         return JSON.stringify(x);
-    } catch(e) {
+    }catch(e) {
          console.warn(e,x);
         return Str(x);
     }
