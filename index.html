@@ -255,7 +255,8 @@ let currentLoadingMsg = null;
 worker.onmessage = async (e) => {
     const {
         type,
-        payload
+        payload,
+        source
     } = e.data;
 
     switch (type) {
@@ -271,7 +272,7 @@ worker.onmessage = async (e) => {
 
         case 'ANSWER':
             if (currentLoadingMsg) {
-                currentLoadingMsg.innerText = await fix(payload);
+                currentLoadingMsg.innerText = (await fix(payload))+` [${source}]`;
                 currentLoadingMsg.classList.remove('loading-dots');
                 currentLoadingMsg = null;
             }
