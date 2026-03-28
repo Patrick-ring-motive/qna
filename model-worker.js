@@ -173,7 +173,7 @@ self.onmessage = async (e) => {
         answers = await findAns(qarr.join(' ') + '?', context);
       }
       
-        
+        if (!answers?.length) {
         answers = await findAns(qarr.join(' ') + '?', context);
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
         if (!answers?.length) {
