@@ -199,14 +199,14 @@ async function fetchContext(str) {
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
     [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    if (!html.querySelector('.mw-search-results-container')) {
+    if (text.replace(/\s+/g,' ').includes('no results matching the query')||!html.querySelector('.mw-search-results-container')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
        // console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
-    if (!html.querySelector('.mw-search-results-container')) {
+    if (text.replace(/\s+/g,' ').includes('no results matching the query')||!html.querySelector('.mw-search-results-container')) {
         str = String(str).split(/\s+/).join(' OR ');
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
