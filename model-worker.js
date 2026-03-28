@@ -150,9 +150,9 @@ self.onmessage = async (e) => {
       const ctx_length = ctx.length;
 
       let answers = await findAns(question, context);
-      source = '⁽ᵇᵉʳᵗ⁾';
+      source = '[bert]';
       if (!answers?.length) {
-        source = '⁽ᵇᵉʳᵗ⁺ˡᶜˢ⁾';
+        source = '[bert+lcs]';
         for (let i = 0; i !== qarr_length; ++i) {
           const word = qarr[i].toLowerCase();
           if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
@@ -176,7 +176,7 @@ self.onmessage = async (e) => {
       if (!answers?.length) {
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
         if (!answers?.length) {
-          source = '⁽ˡᶜˢ⁾';
+          source = '[lcs]';
           const quest = question.toLowerCase();
           let ctext;
           if (blurbs) {
