@@ -214,6 +214,13 @@ async function fetchContext(str) {
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
+    if(html.innerText.includes('no results match the query')){
+        blob = await fetcher(`https://www.wikidata.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
+        text = await blob.text();
+        //console.log(text);
+        html = new DOMParser().parseFromString(text, "text/html");
+        [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+    }
     blurbs = [...html.querySelectorAll('li.mw-search-result')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
     if(!blurbs.length){
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
