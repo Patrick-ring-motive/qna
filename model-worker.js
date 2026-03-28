@@ -1,5 +1,6 @@
 const helloThere = 'hello there';
 let hasHelloThere = false;
+let source = 'bert';
 const unquote = x => String(x).replace(/^[\s"'`]+|[\s"'`]+$/g, '');
 
 const lower = x => String(x).toLowerCase();
@@ -151,6 +152,7 @@ self.onmessage = async (e) => {
       let answers = await findAns(question, context);
 
       if (!answers?.length) {
+        source ='bert+lcs';
         for (let i = 0; i !== qarr_length; ++i) {
           const word = qarr[i].toLowerCase();
           if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
@@ -170,26 +172,12 @@ self.onmessage = async (e) => {
         }
         answers = await findAns(qarr.join(' ') + '?', context);
       }
-      if (!answers?.length) {
-        for (let i = 0; i !== qarr_length; ++i) {
-          const word = qarr[i].toLowerCase();
-          if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
-          let bestMatch = String(ctx[0]);
-          let matchScore = lcs(word, bestMatch) * Math.min(word.length, bestMatch.length) / Math.max(word.length, bestMatch.length);
-          for (let x = 0; x < ctx_length; ++x) {
-            const ctxword = String(ctx[x]);
-            const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
-            if (score > matchScore) {
-              matchScore = score;
-              bestMatch = ctxword;
-            }
-          }
-          qarr[i] = bestMatch;
-        }
+      
         
         answers = await findAns(qarr.join(' ') + '?', context);
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
         if (!answers?.length) {
+          source = 'lcs';
           const quest = question.toLowerCase();
           let ctext;
           if (blurbs) {
@@ -215,7 +203,8 @@ self.onmessage = async (e) => {
           }
           self.postMessage({
             type: 'ANSWER',
-            payload: cap(unquote(ctext[bestMatch])) // + ' ' + stringify(ctext)
+            payload: cap(unquote(ctext[bestMatch])), // + ' ' + stringify(ctext)
+            source
           });
           return;
         }
@@ -237,7 +226,8 @@ self.onmessage = async (e) => {
 
       self.postMessage({
         type: 'ANSWER',
-        payload: cap(unquote(bestAnswer)) //+ ' ' + stringify(answers)
+        payload: cap(unquote(bestAnswer)), //+ ' ' + stringify(answers)
+        source
       });
     } catch (err) {
       console.warn(err);
