@@ -203,7 +203,7 @@ self.onmessage = async (e) => {
           if(!matchScore){
             for (let x = 0; x !== ctext_length; ++x) {
               const ctxword = ctext[x];
-              const score = lcs(quest, ctxword.toLowerCase()) * Math.max(quest.length, ctxword.length) / Math.min(quest.length, ctxword.length);
+              const score = lcs(quest, ctxword.toLowerCase()) + ctxword.length/quest.length;
               if (score > matchScore) {
                 matchScore = score;
                 bestMatch = x;
