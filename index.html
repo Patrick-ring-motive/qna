@@ -272,7 +272,7 @@ worker.onmessage = async (e) => {
 
         case 'ANSWER':
             if (currentLoadingMsg) {
-                currentLoadingMsg.innerText = (await fix(payload))+` [${source}]`;
+                currentLoadingMsg.innerText = (await fix(payload))+`${source}`;
                 currentLoadingMsg.classList.remove('loading-dots');
                 currentLoadingMsg = null;
             }
