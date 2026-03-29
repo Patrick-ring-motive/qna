@@ -178,6 +178,30 @@ self.onmessage = async (e) => {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
+      if (!answers?.length) {
+        //source = '[bert+lcs]';
+        for (let i = 0; i !== qarr_length; ++i) {
+          const word = qarr[i].toLowerCase();
+          if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
+          let bestMatch = String(ctx[0]);
+          let matchScore = lcs(word, bestMatch) * Math.min(word.length, bestMatch.length) / Math.max(word.length, bestMatch.length);
+          for (let x = 0; x < ctx_length; ++x) {
+            const ctxword = String(ctx[x]);
+            const score = lcs(word, ctxword.toLowerCase()) * Math.min(word.length, ctxword.length) / Math.max(word.length, ctxword.length);
+            if (score > matchScore) {
+              matchScore = score;
+              bestMatch = ctxword;
+            }
+          }
+          //if (lcs(word, bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
+            qarr[i] = bestMatch;
+          //}
+        }
+        answers = await findAns(qarr.join(' ') + '?', context);
+        if (!answers?.length && !/^what/i.test(qarr.join(' '))){
+          answers = await findAns(`What is ${qarr.join(' ')}?`, context);
+        }
+      }
       
       if (!answers?.length) {
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
