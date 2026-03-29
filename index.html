@@ -221,11 +221,11 @@ async function fetchContext(str) {
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
-    blurbs = [...html.querySelectorAll('li.mw-search-result')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
+    blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
     if(!blurbs.length){
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
     }
-    let context = [...html.querySelectorAll('.searchresult')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+    let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
     if(!context.length){
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
     }
