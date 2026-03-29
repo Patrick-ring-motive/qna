@@ -221,7 +221,8 @@ async function fetchContext(str) {
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
     }
-    blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
+    blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
+      .filter(x=>!x.includes('Wiktionary, the free dictionary')
     if(!blurbs.length){
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
     }
