@@ -151,7 +151,7 @@ self.onmessage = async (e) => {
 
       let answers = await findAns(question, context);
       if (!answers?.length) {
-        answers = await findAns(`What is${question}?`, context);
+        answers = await findAns(`What is ${question}?`, context);
       }
       source = '[bert]';
       if (!answers?.length) {
@@ -175,7 +175,7 @@ self.onmessage = async (e) => {
         }
         answers = await findAns(qarr.join(' ') + '?', context);
         if (!answers?.length) {
-          answers = await findAns(`What is${qarr.join(' ')}?`, context);
+          answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
       
