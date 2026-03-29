@@ -150,7 +150,7 @@ self.onmessage = async (e) => {
       const ctx_length = ctx.length;
 
       let answers = await findAns(question, context);
-      if (!answers?.length) {
+      if (!answers?.length && !/^what/i.test(question)){
         answers = await findAns(`What is ${question}?`, context);
       }
       source = '[bert]';
@@ -174,14 +174,13 @@ self.onmessage = async (e) => {
           }
         }
         answers = await findAns(qarr.join(' ') + '?', context);
-        if (!answers?.length) {
+        if (!answers?.length && !/^what/i.test(qarr.join(' '))){
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
       
       if (!answers?.length) {
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
-        if (!answers?.length) {
           source = '[lcs]';
           const quest = question.toLowerCase();
           let ctext;
@@ -222,7 +221,6 @@ self.onmessage = async (e) => {
             source
           });
           return;
-        }
       }
 
       // Apply the specific scoring logic requested
