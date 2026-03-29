@@ -150,6 +150,9 @@ self.onmessage = async (e) => {
       const ctx_length = ctx.length;
 
       let answers = await findAns(question, context);
+      if (!answers?.length) {
+        answers = await findAns(`What is${question}?`, context);
+      }
       source = '[bert]';
       if (!answers?.length) {
         source = '[bert+lcs]';
@@ -171,6 +174,9 @@ self.onmessage = async (e) => {
           }
         }
         answers = await findAns(qarr.join(' ') + '?', context);
+        if (!answers?.length) {
+          answers = await findAns(`What is${qarr.join(' ')}?`, context);
+        }
       }
       
       if (!answers?.length) {
