@@ -150,7 +150,7 @@ self.onmessage = async (e) => {
       const ctx_length = ctx.length;
 
       let answers = await findAns(question, context);
-      if (!answers?.length && !/^what/i.test(question)){
+      if (!answers?.length && !/^what/i.test(question)) {
         answers = await findAns(`What is ${question}?`, context);
       }
       source = '[bert]';
@@ -174,7 +174,7 @@ self.onmessage = async (e) => {
           }
         }
         answers = await findAns(qarr.join(' ') + '?', context);
-        if (!answers?.length && !/^what/i.test(qarr.join(' '))){
+        if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
@@ -194,57 +194,57 @@ self.onmessage = async (e) => {
             }
           }
           //if (lcs(word, bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
-            qarr[i] = bestMatch;
+          qarr[i] = bestMatch;
           //}
         }
         answers = await findAns(qarr.join(' ') + '?', context);
-        if (!answers?.length && !/^what/i.test(qarr.join(' '))){
+        if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
-      
+
       if (!answers?.length) {
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
-          source = '[lcs]';
-          const quest = question.toLowerCase();
-          let ctext;
-          if (blurbs) {
-            ctext = blurbs;
-          } else {
-            ctext = context.toLowerCase().split(/[\?\!\.]/);
+        source = '[lcs]';
+        const quest = question.toLowerCase();
+        let ctext;
+        if (blurbs) {
+          ctext = blurbs;
+        } else {
+          ctext = context.toLowerCase().split(/[\?\!\.]/);
+        }
+        let bestMatch = 0;
+        let matchScore = 0;
+        const ctext_length = ctext.length;
+        for (let x = 0; x !== ctext_length; ++x) {
+          const ctxword = ctext[x];
+          const ql = lettersOnly(quest);
+          const cl = lettersOnly(ctxword)
+          if (lcsMatch(ql, cl)) {
+            continue;
           }
-          let bestMatch = 0;
-          let matchScore = 0;
-          const ctext_length = ctext.length;
+          const score = lcs(quest, ctxword.toLowerCase()); // * ctxword.length;//* Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
+          if (score > matchScore) {
+            matchScore = score;
+            bestMatch = x;
+          }
+        }
+        if (!matchScore) {
           for (let x = 0; x !== ctext_length; ++x) {
             const ctxword = ctext[x];
-            const ql = lettersOnly(quest);
-            const cl = lettersOnly(ctxword)
-            if (lcsMatch(ql, cl)) {
-              continue;
-            }
-            const score = lcs(quest, ctxword.toLowerCase());// * ctxword.length;//* Math.min(quest.length, ctxword.length) / Math.max(quest.length, ctxword.length);
+            const score = lcs(quest, ctxword.toLowerCase()) + ctxword.length / quest.length;
             if (score > matchScore) {
               matchScore = score;
               bestMatch = x;
             }
           }
-          if(!matchScore){
-            for (let x = 0; x !== ctext_length; ++x) {
-              const ctxword = ctext[x];
-              const score = lcs(quest, ctxword.toLowerCase()) + ctxword.length/quest.length;
-              if (score > matchScore) {
-                matchScore = score;
-                bestMatch = x;
-              }
-            }
-          }
-          self.postMessage({
-            type: 'ANSWER',
-            payload: cap(unquote(ctext[bestMatch])), // + ' ' + stringify(ctext)
-            source
-          });
-          return;
+        }
+        self.postMessage({
+          type: 'ANSWER',
+          payload: cap(unquote(ctext[bestMatch])), // + ' ' + stringify(ctext)
+          source
+        });
+        return;
       }
 
       // Apply the specific scoring logic requested
