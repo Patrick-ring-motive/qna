@@ -1,4 +1,4 @@
-()=>{
+(()=>{
   const _fetch = globalThis.fetch;
   globalThis.fetch = Object.setPrototypeOf(async function fetch(url,options){
     url = url.url ?? url;
