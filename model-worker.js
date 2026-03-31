@@ -1,3 +1,17 @@
+()=>{
+  const _fetch = globalThis.fetch;
+  globalThis.fetch = Object.setPrototypeOf(async function fetch(url,options){
+    url = url.url ?? url;
+    if(String(url).includes('https://patrick-ring-motive.github.io/qna/model.json')){
+      return _fetch('model.json');
+    }
+    return _fetch.apply(this,argsuments);
+  },_fetch);
+})();
+
+
+
+
 const helloThere = 'hello there';
 let hasHelloThere = false;
 let source = 'bert';
