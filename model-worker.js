@@ -5,7 +5,7 @@
     if(String(url).includes('https://patrick-ring-motive.github.io/qna/model.json')){
       return _fetch('model.json');
     }
-    return _fetch.apply(this,argsuments);
+    return _fetch.apply(this,arguments);
   },_fetch);
 })();
 
