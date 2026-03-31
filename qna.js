@@ -240,7 +240,8 @@ const version$2 = '1.0.2';
                     case 1:
                         _a.vocab = _b.sent();
                         this.trie = new Trie();
-                        for (vocabIndex = 999; vocabIndex < this.vocab.length; vocabIndex++) {
+                        const this_vocab_length = this.vocab.length || 0;
+                        for (vocabIndex = 999; vocabIndex < this_vocab_length; ++vocabIndex) {
                             word = this.vocab[vocabIndex];
                             this.trie.insert(word, 1, vocabIndex);
                         }
@@ -358,8 +359,8 @@ const version$2 = '1.0.2';
             const wordsLength = words.length;
             for (let i = 0; i !== wordsLength; ++i) {
                 var chars = [];
-                const _a = words[i].text;
-                const _a_length = _a.length;
+                var _a = words[i].text;
+                const _a_length = _a.length || 0;
                 for (var _i = 0; _i !== _a_length; ++_i) {
                     var symbol = _a[_i];
                     chars.push(symbol);
@@ -659,37 +660,18 @@ const version$2 = '1.0.2';
                 }
             } else {
                 startIndexes.forEach(function (start) {
-                    if (endIndexes[Symbol.iterator] === [][Symbol.iterator]) {
-                        const endIndexes_length = endIndexes.length || 0;
-                        for (let _i = 0; _i !== endIndexes_length; ++_i) {
-                            if (!(_i in endIndexes))
-                                continue;
-                            const end = endIndexes[_i];
-                            if (tokenToOrigMap[start + OUTPUT_OFFSET$2] && tokenToOrigMap[end + OUTPUT_OFFSET$2] && end >= start) {
-                                var length_2 = end - start + 1;
-                                if (length_2 < MAX_ANSWER_LEN$2) {
-                                    origResults.push({
-                                        start: start,
-                                        end: end,
-                                        score: startLogits[start] + endLogits[end]
-                                    });
-                                }
+                    endIndexes.forEach(function (end) {
+                        if (tokenToOrigMap[start + OUTPUT_OFFSET$2] && tokenToOrigMap[end + OUTPUT_OFFSET$2] && end >= start) {
+                            var length_2 = end - start + 1;
+                            if (length_2 < MAX_ANSWER_LEN$2) {
+                                origResults.push({
+                                    start: start,
+                                    end: end,
+                                    score: startLogits[start] + endLogits[end]
+                                });
                             }
                         }
-                    } else {
-                        endIndexes.forEach(function (end) {
-                            if (tokenToOrigMap[start + OUTPUT_OFFSET$2] && tokenToOrigMap[end + OUTPUT_OFFSET$2] && end >= start) {
-                                var length_2 = end - start + 1;
-                                if (length_2 < MAX_ANSWER_LEN$2) {
-                                    origResults.push({
-                                        start: start,
-                                        end: end,
-                                        score: startLogits[start] + endLogits[end]
-                                    });
-                                }
-                            }
-                        });
-                    }
+                    });
                 });
             }
             origResults.sort(function (a, b) {
