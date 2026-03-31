@@ -232,7 +232,7 @@ async function fetchContext(str) {
     }
     context = context.slice(0, 2000) + '.';
     context = context.split('. ').map(cap).join('. ');
-    context = await fix(context);
+   // context = await fix(context);
     console.log({context});
     return Object.assign(new String(context, {
         blurbs
