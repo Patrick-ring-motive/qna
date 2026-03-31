@@ -244,7 +244,7 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const statusEl = document.getElementById('status');
 const activityIndicator = document.getElementById('activity-indicator');
-const worker = new Worker('model-worker.js');
+
 
 
 
@@ -258,6 +258,21 @@ function addMessage(text, isUser = false) {
 }
 
 let currentLoadingMsg = null;
+
+function handleError(payload){
+            console.warn(payload);
+            statusEl.innerText = "Worker Error";
+            statusEl.className = "text-xs text-red-500 font-medium";
+            addMessage("Error: " + payload);
+            activityIndicator.classList.replace('bg-green-500', 'bg-red-500');
+};
+let worker = {}; 
+try{
+    worker = new Worker('model-worker.js');
+}catch(err){
+    handleError(err);
+}
+worker.onerror = handleError;
 
 // --- Worker Communication ---
 worker.onmessage = async (e) => {
@@ -288,10 +303,7 @@ worker.onmessage = async (e) => {
             break;
 
         case 'ERROR':
-            statusEl.innerText = "Worker Error";
-            statusEl.className = "text-xs text-red-500 font-medium";
-            addMessage("Error: " + payload);
-            activityIndicator.classList.replace('bg-green-500', 'bg-red-500');
+            handleError(payload);
             break;
     }
     globalThis.sendInProgress = false;
