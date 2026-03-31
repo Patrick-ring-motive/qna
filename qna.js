@@ -240,8 +240,7 @@ const version$2 = '1.0.2';
                     case 1:
                         _a.vocab = _b.sent();
                         this.trie = new Trie();
-                        const _loop_length = this.vocab.length || 0;
-                        for (vocabIndex = 999; vocabIndex < _loop_length; ++vocabIndex) {
+                        for (vocabIndex = 999; vocabIndex < this.vocab.length; vocabIndex++) {
                             word = this.vocab[vocabIndex];
                             this.trie.insert(word, 1, vocabIndex);
                         }
@@ -359,8 +358,9 @@ const version$2 = '1.0.2';
             const wordsLength = words.length;
             for (let i = 0; i !== wordsLength; ++i) {
                 var chars = [];
-                const _a_length = _a.length || 0;
-                for (var _i = 0, _a = words[i].text; _i !== _a_length; ++_i) {
+                const _a = words[i].text;
+                const _a_length = _a.length;
+                for (var _i = 0; _i !== _a_length; ++_i) {
                     var symbol = _a[_i];
                     chars.push(symbol);
                 }
