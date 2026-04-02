@@ -1,162 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qna Bot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-          --min-vh: min(100vh,min(100dvh,100svh));
-        }
-        body { 
-            background-color: #f3f4f6; font-family: sans-serif; 
-            max-height: var(--min-vh) !important;
-        }
-        .chat-container { height: calc(var(--min-vh) - 160px); }
-        .message { max-width: 85%; margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 1rem; position: relative; }
-        .user-msg { background-color: #3b82f6; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
-        .bot-msg { background-color: white; color: #1f2937; align-self: flex-start; border-bottom-left-radius: 0; border: 1px solid #e5e7eb; }
-        .loading-dots::after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
-        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qna Bot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --min-vh: min(100vh, min(100dvh, 100svh));
+    }
+
+    body {
+      background-color: #f3f4f6;
+      font-family: sans-serif;
+      max-height: var(--min-vh) !important;
+    }
+
+    .chat-container {
+      height: calc(var(--min-vh) - 160px);
+    }
+
+    .message {
+      max-width: 85%;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      position: relative;
+    }
+
+    .user-msg {
+      background-color: #3b82f6;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot-msg {
+      background-color: white;
+      color: #1f2937;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+      border: 1px solid #e5e7eb;
+    }
+
+    .loading-dots::after {
+      content: '.';
+      animation: dots 1.5s steps(5, end) infinite;
+    }
+
+    @keyframes dots {
+
+      0%,
+      20% {
+        content: '.';
+      }
+
+      40% {
+        content: '..';
+      }
+
+      60% {
+        content: '...';
+      }
+    }
+
+  </style>
 </head>
+
 <body class="flex flex-col h-screen">
 
-    <header class="bg-white border-b p-4 shadow-sm">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-bold text-gray-800">Qna Bot</h1>
-                <p id="status" class="text-xs text-orange-500 font-medium">Initializing Model...</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <div id="activity-indicator" class="w-2 h-2 rounded-full bg-gray-300"></div>
-                <span class="text-[10px] uppercase text-gray-400"></span>
-            </div>
-        </div>
-    </header>
+  <header class="bg-white border-b p-4 shadow-sm">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold text-gray-800">Qna Bot</h1>
+        <p id="status" class="text-xs text-orange-500 font-medium">Initializing Model...</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <div id="activity-indicator" class="w-2 h-2 rounded-full bg-gray-300"></div>
+        <span class="text-[10px] uppercase text-gray-400"></span>
+      </div>
+    </div>
+  </header>
 
-    <main id="chat-window" class="flex-1 overflow-y-auto p-4 chat-container flex flex-col max-w-4xl mx-auto w-full">
-       
-    </main>
+  <main id="chat-window" class="flex-1 overflow-y-auto p-4 chat-container flex flex-col max-w-4xl mx-auto w-full">
 
-    <footer class="p-4 bg-white border-t">
-        <div class="max-w-4xl mx-auto flex gap-2">
-            <input type="text" id="user-input" 
-                placeholder="Model is loading..." 
-                class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100" 
-                disabled>
-            <button id="send-btn" 
-                class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:bg-gray-400" 
-                disabled>
-                Send
-            </button>
-        </div>
-    </footer>
+  </main>
 
-    <script type="module">
-const proxy = 'https://proxy.script-google-com.workers.dev/';
-const proxyFetch = async(url)=>{
-    const pURL = new URL(proxy);
-    pURL.searchParams.set('url',url);
-    const res = await fetch(String(pURL));
-    return res;
-};
-const cap = x => [...String(x)].map((x, i) => (!i) ? x.toUpperCase() : x).join('');
-const Str = (x) => {
-     try{
+  <footer class="p-4 bg-white border-t">
+    <div class="max-w-4xl mx-auto flex gap-2">
+      <input type="text" id="user-input" placeholder="Model is loading..." class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100" disabled>
+      <button id="send-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:bg-gray-400" disabled>
+        Send
+      </button>
+    </div>
+  </footer>
+
+  <script type="module">
+    const proxy = 'https://proxy.script-google-com.workers.dev/';
+    const proxyFetch = async (url) => {
+      const pURL = new URL(proxy);
+      pURL.searchParams.set('url', url);
+      const res = await fetch(String(pURL));
+      return res;
+    };
+    const cap = x => [...String(x)].map((x, i) => (!i) ? x.toUpperCase() : x).join('');
+    const Str = (x) => {
+      try {
         return String(x);
-    }catch(e) {
-         console.warn(e);
+      } catch (e) {
+        console.warn(e);
         return String(e);
-    }
-};
+      }
+    };
 
-const stringify = (x) => {
-    try{
+    const stringify = (x) => {
+      try {
         return JSON.stringify(x);
-    }catch(e) {
-         console.warn(e,x);
+      } catch (e) {
+        console.warn(e, x);
         return Str(x);
-    }
-};
+      }
+    };
 
-const unquote = x => String(x).replace(/^[\s"'`]+|[\s"'`]+$/g, '');
+    const unquote = x => String(x).replace(/^[\s"'`]+|[\s"'`]+$/g, '');
 
-const url =
-    "https://script.google.com/macros/s/AKfycbzBFvLSewHPfKa0aemNWTO6PvXGhLzolyJkWlKVylPeCQNQIT3GoygE4k6pvTOYXoHC/exec";
+    const url =
+      "https://script.google.com/macros/s/AKfycbzBFvLSewHPfKa0aemNWTO6PvXGhLzolyJkWlKVylPeCQNQIT3GoygE4k6pvTOYXoHC/exec";
 
-const fetchText = async (...args) => (await fetch(...args)).text();
+    const fetchText = async (...args) => (await fetch(...args)).text();
 
-const canPing = async()=>{
-    try{
+    const canPing = async () => {
+      try {
         const text = await fetchText(proxy + 'ping');
-        console.log({text});
+        console.log({
+          text
+        });
         return text === 'pong';
-    }catch(e){
+      } catch (e) {
         console.warn(e);
         return false;
-    }
-};
+      }
+    };
 
-const langCache = {};
-const fixText = async function fixText(
-    text,
-    sourceLang = "fy",
-    targetLang = "en",
-) {
-    if (!text?.trim?.()) {
+    const langCache = {};
+    const fixText = async function fixText(
+      text,
+      sourceLang = "fy",
+      targetLang = "en",
+    ) {
+      if (!text?.trim?.()) {
         return text;
-    }
-    text = text.trim();
-    let out;
-    try {
+      }
+      text = text.trim();
+      let out;
+      try {
         if (localStorage.getItem(text)) return localStorage.getItem(text);
         if (langCache[text]) return JSON.parse(await langCache[text]).textOut;
         const payload = {
-            text
+          text
         };
         payload.sourceLang = sourceLang;
         payload.targetLang = targetLang;
         langCache[text] = fetchText(`${url}`, {
-            method: "POST",
-            body: encodeURIComponent(stringify(payload)),
+          method: "POST",
+          body: encodeURIComponent(stringify(payload)),
         });
         const responsePayload = JSON.parse(await langCache[text]);
         out = responsePayload.textOut;
         //console.log({text},{responsePayload});
-    } catch (e) {
+      } catch (e) {
         console.warn(e);
-    }
-    if (out?.trim?.() && out?.trim?.() !== "#ERROR!" && out != text) {
+      }
+      if (out?.trim?.() && out?.trim?.() !== "#ERROR!" && out != text) {
         localStorage.setItem(text, out);
-    } else {
+      } else {
         delete langCache[text];
-    }
-    return out || text;
-};
-const fix = async (txt) => {
-    if (!/[\?\!\.]$/.test(txt)) {
+      }
+      return out || text;
+    };
+    const fix = async (txt) => {
+      if (!/[\?\!\.]$/.test(txt)) {
         txt = String(txt).trim() + '.';
-    }
-    txt = await fixText(txt, 'en', 'fr');
-    txt = await fixText(txt, 'fr', 'en');
-    return txt;
-};
-const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
+      }
+      txt = await fixText(txt, 'en', 'fr');
+      txt = await fixText(txt, 'fr', 'en');
+      return txt;
+    };
+    const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
 
-async function fetchAllChunks(targetUrl) {
-    const chunks = [];
-    let chunk = 0;
-    let contentType = "application/octet-stream";
+    async function fetchAllChunks(targetUrl) {
+      const chunks = [];
+      let chunk = 0;
+      let contentType = "application/octet-stream";
 
-    while (true) {
+      while (true) {
         const res = await fetch(
-            `${gasUrl}?url=${encodeURIComponent(targetUrl)}&chunk=${chunk}`,
+          `${gasUrl}?url=${encodeURIComponent(targetUrl)}&chunk=${chunk}`,
         );
         const body = await res.json();
 
-        if (body.error) break;// throw new Error(body.error);
+        if (body.error) break; // throw new Error(body.error);
 
         if (body.contentType) contentType = body.contentType;
 
@@ -164,153 +208,152 @@ async function fetchAllChunks(targetUrl) {
         const binary = atob(body.data);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+          bytes[i] = binary.charCodeAt(i);
         }
         chunks.push(bytes);
 
         if (body.done) break;
         chunk++;
-    }
+      }
 
-    return new Blob(chunks, {
+      return new Blob(chunks, {
         type: contentType
-    });
-}
-let fetcher;
-async function fetchContext(str) {
-    if(!fetcher){
-        if(await canPing()){
-            fetcher = proxyFetch;
-        }else{
-            fetcher = fetchAllChunks;
-        }
+      });
     }
-    str = unquote(str);
-    let blurbs = [];
-    let blob = await fetcher(`https://en.wikipedia.org/wiki/${str}`);
-    let text = await blob.text();
-    let html = new DOMParser().parseFromString(text, "text/html");
-    [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    if (text.replace(/\s+/g,' ').includes('Wikipedia does not have an article with this exact name')||!html.querySelector('#bodyContent .mw-content-ltr')) {
+    let fetcher;
+    async function fetchContext(str) {
+      if (!fetcher) {
+        if (await canPing()) {
+          fetcher = proxyFetch;
+        } else {
+          fetcher = fetchAllChunks;
+        }
+      }
+      str = unquote(str);
+      let blurbs = [];
+      let blob = await fetcher(`https://en.wikipedia.org/wiki/${str}`);
+      let text = await blob.text();
+      let html = new DOMParser().parseFromString(text, "text/html");
+      [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+      if (text.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
         //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    }
-    [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    if (text.replace(/\s+/g,' ').includes('no results matching the query')||!html.querySelector('.mw-search-results-container')) {
+      }
+      [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+      if (text.replace(/\s+/g, ' ').includes('no results matching the query') || !html.querySelector('.mw-search-results-container')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-       // console.log(text);
+        // console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    }
-    if (text.replace(/\s+/g,' ').includes('no results matching the query')||!html.querySelector('.mw-search-results-container')) {
+      }
+      if (text.replace(/\s+/g, ' ').includes('no results matching the query') || !html.querySelector('.mw-search-results-container')) {
         str = String(str).split(/\s+/).join(' OR ');
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
         //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    }
-    if(['page does not exist','no results match the query'].some(x=>html.firstElementChild.innerText.includes(x))){
+      }
+      if (['page does not exist', 'no results match the query'].some(x => html.firstElementChild.innerText.includes(x))) {
         blob = await fetcher(`https://www.wikidata.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
         //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
-    }
-    blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
-      .filter(x=>!x.includes('Wiktionary, the free dictionary'));
-    if(!blurbs.length){
+      }
+      blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
+        .filter(x => !x.includes('Wiktionary, the free dictionary'));
+      if (!blurbs.length) {
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
-    }
-    let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
-    if(!context.length){
+      }
+      let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+      if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
-    }
-    context = context.slice(0, 2000) + '.';
-    context = context.split('. ').map(cap).join('. ');
-   // context = await fix(context);
-    console.log({context});
-    return Object.assign(new String(context, {
+      }
+      context = context.slice(0, 2000) + '.';
+      context = context.split('. ').map(cap).join('. ');
+      // context = await fix(context);
+      console.log({
+        context
+      });
+      return Object.assign(new String(context, {
         blurbs
-    }));
-}
+      }));
+    }
 
-const chatWindow = document.getElementById('chat-window');
-const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const statusEl = document.getElementById('status');
-const activityIndicator = document.getElementById('activity-indicator');
+    const chatWindow = document.getElementById('chat-window');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const statusEl = document.getElementById('status');
+    const activityIndicator = document.getElementById('activity-indicator');
 
+    function addMessage(text, isUser = false) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${isUser ? 'user-msg' : 'bot-msg'}`;
+      msgDiv.innerText = text;
+      chatWindow.appendChild(msgDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return msgDiv;
+    }
 
+    let currentLoadingMsg = null;
 
+    function handleError(payload) {
+      console.warn(payload);
+      statusEl.innerText = "Worker Error";
+      statusEl.className = "text-xs text-red-500 font-medium";
+      addMessage("Error: " + payload);
+      activityIndicator.classList.replace('bg-green-500', 'bg-red-500');
+    };
+    let worker = {};
+    try {
+      worker = new Worker('model-worker.js');
+    } catch (err) {
+      handleError(err);
+    }
+    worker.onerror = handleError;
 
-function addMessage(text, isUser = false) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${isUser ? 'user-msg' : 'bot-msg'}`;
-    msgDiv.innerText = text;
-    chatWindow.appendChild(msgDiv);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-    return msgDiv;
-}
-
-let currentLoadingMsg = null;
-
-function handleError(payload){
-            console.warn(payload);
-            statusEl.innerText = "Worker Error";
-            statusEl.className = "text-xs text-red-500 font-medium";
-            addMessage("Error: " + payload);
-            activityIndicator.classList.replace('bg-green-500', 'bg-red-500');
-};
-let worker = {}; 
-try{
-    worker = new Worker('model-worker.js');
-}catch(err){
-    handleError(err);
-}
-worker.onerror = handleError;
-
-// --- Worker Communication ---
-worker.onmessage = async (e) => {
-    const {
+    // --- Worker Communication ---
+    worker.onmessage = async (e) => {
+      const {
         type,
         payload,
         source
-    } = e.data;
+      } = e.data;
 
-    switch (type) {
+      switch (type) {
         case 'READY':
-            statusEl.innerText = "Model Ready";
-            statusEl.className = "text-xs text-green-500 font-medium";
-            activityIndicator.classList.replace('bg-gray-300', 'bg-green-500');
-            userInput.disabled = false;
-            userInput.placeholder = "Ask something...";
-            sendBtn.disabled = false;
-            addMessage("Model loaded");
-            break;
+          statusEl.innerText = "Model Ready";
+          statusEl.className = "text-xs text-green-500 font-medium";
+          activityIndicator.classList.replace('bg-gray-300', 'bg-green-500');
+          userInput.disabled = false;
+          userInput.placeholder = "Ask something...";
+          sendBtn.disabled = false;
+          addMessage("Model loaded");
+          break;
 
         case 'ANSWER':
-            if (currentLoadingMsg) {
-                currentLoadingMsg.innerHTML = (await fix(payload))+`<sup>${source}</sup>`;
-                currentLoadingMsg.classList.remove('loading-dots');
-                currentLoadingMsg = null;
-            }
-            activityIndicator.classList.remove('animate-pulse');
-            break;
+          if (currentLoadingMsg) {
+            currentLoadingMsg.innerHTML = (await fix(payload)) + `<sup>${source}</sup>`;
+            currentLoadingMsg.classList.remove('loading-dots');
+            currentLoadingMsg = null;
+          }
+          activityIndicator.classList.remove('animate-pulse');
+          break;
 
         case 'ERROR':
-            handleError(payload);
-            break;
-    }
-    globalThis.sendInProgress = false;
-};
+          handleError(payload);
+          break;
+      }
+      globalThis.sendInProgress = false;
+    };
 
-async function handleSend() {
-    try {
+    async function handleSend() {
+      try {
         const question = userInput.value.trim();
 
         if (globalThis.sendInProgress || !question) return;
@@ -330,28 +373,30 @@ async function handleSend() {
 
         // Send to worker
         worker.postMessage({
-            type: 'ASK',
-            payload: {
-                question,
-                context: processedContext,
-                blurbs: processedContext.blurbs
-            }
+          type: 'ASK',
+          payload: {
+            question,
+            context: processedContext,
+            blurbs: processedContext.blurbs
+          }
         });
-    } catch (e) {
+      } catch (e) {
         console.warn(e);
         addMessage("Error: " + e);
+      }
     }
-}
 
-sendBtn.addEventListener('click', handleSend);
-userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleSend();
-});
+    sendBtn.addEventListener('click', handleSend);
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSend();
+    });
 
-// Initialize Worker
-worker.postMessage({
-    type: 'INIT'
-});
-    </script>
+    // Initialize Worker
+    worker.postMessage({
+      type: 'INIT'
+    });
+
+  </script>
 </body>
+
 </html>
