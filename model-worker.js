@@ -98,7 +98,7 @@ const lcsMatch = (seq1, seq2) => lcs(seq1, seq2) >= ~~(0.8 * Math.max(seq1.lengt
 async function findAns(ques, ctx) {
   ques = String(ques).trim().replace(/[\s\?\!\.\,\;]*$/g, '?');
   if (ques.split(/\s/).length === 1) {
-    ques = `What is ${ques}`;
+    ques = `What is ${ques}?`;
   }
   return await self.model.findAnswers(ques, ctx);
 }
@@ -160,8 +160,10 @@ self.onmessage = async (e) => {
       const ctx = [...new Set(phrases.join(' ').split(/\s+/))].filter(x => x);
       const ctx_length = ctx.length;
 
+      //Ask bert our question
       let answers = await findAns(question, context);
       if (!answers?.length && !/^what/i.test(question)) {
+        //try asking differently if no answers
         answers = await findAns(`What is ${question}?`, context);
       }
       source = '[bert]';
@@ -180,10 +182,12 @@ self.onmessage = async (e) => {
               bestMatch = ctxword;
             }
           }
-          if (lcs(word, bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
+          if (lcsMatch(word, bestMatch.toLowerCase())) {
             qarr[i] = bestMatch;
           }
         }
+        // replace similar words in the question with similar words 
+        // from the context and retry
         answers = await findAns(qarr.join(' ') + '?', context);
         if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
@@ -204,10 +208,10 @@ self.onmessage = async (e) => {
               bestMatch = ctxword;
             }
           }
-          //if (lcs(word, bestMatch.toLowerCase()) >= ~~(0.8 * word.length)) {
           qarr[i] = bestMatch;
-          //}
         }
+        // replace all words in the question with any words 
+        // from the context and retry
         answers = await findAns(qarr.join(' ') + '?', context);
         if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
@@ -215,6 +219,8 @@ self.onmessage = async (e) => {
       }
 
       if (!answers?.length) {
+        // last try is to get the most similar paragraph to the prompt
+        // slight bump for longer paragraphs
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
         source = '[lcs]';
         const quest = question.toLowerCase();
@@ -258,7 +264,7 @@ self.onmessage = async (e) => {
         return;
       }
 
-      // Apply the specific scoring logic requested
+      // Find best bert answer weighted by score * length
       let bestAnswer = (answers && answers.length > 0) ? answers[0].text : qarr?.join?.(' ') ?? "No answer found.";
       let bestScore = 0;
 
