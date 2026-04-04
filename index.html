@@ -238,7 +238,6 @@
       if (text.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-        //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
       }
@@ -246,7 +245,6 @@
       if (text.replace(/\s+/g, ' ').includes('no results matching the query') || !html.querySelector('.mw-search-results-container')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-        // console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
       }
@@ -254,21 +252,20 @@
         str = String(str).split(/\s+/).join(' OR ');
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-        //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
       }
       if (['page does not exist', 'no results match the query'].some(x => html.firstElementChild.innerText.includes(x))) {
         blob = await fetcher(`https://www.wikidata.org/w/index.php?search=${encodeURIComponent(str)}&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
-        //console.log(text);
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
       }
       blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
-        .filter(x => !x.includes('Wiktionary, the free dictionary'));
+        .filter(x => !x.includes('tionary, the free dictionary'));
       if (!blurbs.length) {
-        blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim());
+        blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
+        .filter(x => !x.includes('tionary, the free dictionary'));
       }
       let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       if (!context.length) {
