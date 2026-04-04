@@ -230,6 +230,7 @@ self.onmessage = async (e) => {
         } else {
           ctext = context.toLowerCase().split(/[\?\!\.]/);
         }
+        ctext = ctext.filter(x=>!/Wiktionary.\sthe\s+free\s+dictionary/i.test(x));
         let bestMatch = 0;
         let matchScore = 0;
         const ctext_length = ctext.length;
