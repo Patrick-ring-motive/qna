@@ -205,7 +205,7 @@ self.onmessage = async (e) => {
         }
       }
       if (!answers?.length) {
-        //source = '[bert+lcs]';
+        source = '[bert+lcs]';
         for (let i = 0; i !== qarr_length; ++i) {
           const word = qarr[i].toLowerCase();
           if ([word, qarr[i]].some(x => ctx.includes(x))) continue;
@@ -227,6 +227,24 @@ self.onmessage = async (e) => {
         if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
+      }
+      if(!answers?.length){
+        source = '[aert]';
+        answers = await findAns(`What is ${longestWord(question)}?`, context);
+      }
+
+      if(!answers?.length){
+        source = '[aert+lcs]';
+        const longest = longestWord(question);
+        let best = '';
+        for(const word of ctx){
+          if(lcsMatch(longest,word)){
+            if(lcs(longest,word) > lcs(longest,best)){
+              best = word;
+            }
+          }
+        }
+        answers = await findAns(`What is ${best}?`, context);
       }
 
       if (!answers?.length) {
