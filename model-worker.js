@@ -173,7 +173,8 @@ self.onmessage = async (e) => {
           hasHelloThere = true;
           self.postMessage({
             type: 'ANSWER',
-            payload: 'General Kenobi!'
+            payload: 'General Kenobi!',
+            source:''
           });
           return;
         }
