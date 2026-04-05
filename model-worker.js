@@ -31,6 +31,17 @@ const stringify = x => {
 const beReg = /^(is|am|are|were|was|will|did|do|does|can|may|would|could|have|say|get|make|go|know|take|see|come|think|look|want|give|use|find|tell|ask|work|seem|feel|try|leave|call|has)[a-z]+/i;
 const wReg = /^(w|h)[a-z]+/i;
 
+     const longestWord=(str)=>{
+       let longest = '';
+       const words = String(str).split(/\s+/);
+       for(const word of words){
+         if(word.length >= longest.length){
+           longest = word;
+         }
+       }
+       return longest;
+     };
+
 function questionToAnswer(text, answer) {
   if (/\sor\s/i.test(text)) return answer;
   answer = unquote(answer);
