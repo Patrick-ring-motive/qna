@@ -42,6 +42,24 @@ const wReg = /^(w|h)[a-z]+/i;
        return longest;
      };
 
+const getBestAnswer = answers =>{
+
+        // Find best bert answer weighted by score * length
+      let bestAnswer = (answers && answers.length > 0) ? answers[0].text : qarr?.join?.(' ') ?? "No answer found.";
+      let bestScore = 0;
+
+      if (answers && answers.length > 0) {
+        for (const a of answers) {
+          const score = a.text.length * a.score;
+          if (score > bestScore) {
+            bestScore = score;
+            bestAnswer = a.text;
+          }
+        }
+      }
+  return bestAnswer;
+};
+
 function questionToAnswer(text, answer) {
   if (/\sor\s/i.test(text)) return answer;
   answer = unquote(answer);
@@ -178,7 +196,7 @@ self.onmessage = async (e) => {
         answers = await findAns(`What is ${question}?`, context);
       }
       source = '[bert]';
-      if (!answers?.length) {
+      if (!answers?.length||getBestAnswer(answers).split(/\s+/).length<2) {
         source = '[bert+lcs]';
         for (let i = 0; i !== qarr_length; ++i) {
           const word = qarr[i].toLowerCase();
@@ -204,7 +222,7 @@ self.onmessage = async (e) => {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
-      if (!answers?.length) {
+      if (!answers?.length||getBestAnswer(answers).split(/\s+/).length<2) {
         source = '[bert+lcs]';
         for (let i = 0; i !== qarr_length; ++i) {
           const word = qarr[i].toLowerCase();
@@ -228,12 +246,12 @@ self.onmessage = async (e) => {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
-      if(!answers?.length){
+      if (!answers?.length||getBestAnswer(answers).split(/\s+/).length<2) {
         source = '[aert]';
         answers = await findAns(`What is ${longestWord(question)}?`, context);
       }
 
-      if(!answers?.length){
+      if (!answers?.length||getBestAnswer(answers).split(/\s+/).length<2) {
         source = '[aert+lcs]';
         const longest = longestWord(question);
         let best = '';
@@ -247,7 +265,7 @@ self.onmessage = async (e) => {
         answers = await findAns(`What is ${best}?`, context);
       }
 
-      if (!answers?.length) {
+      if (!answers?.length||getBestAnswer(answers).split(/\s+/).length<2) {
         // last try is to get the most similar paragraph to the prompt
         // slight bump for longer paragraphs
         const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
