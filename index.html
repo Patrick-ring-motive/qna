@@ -249,6 +249,7 @@ const longestWord = (str) => {
   return interleaved.join('').trim();
 }
 
+    const unique = x => x ? [...new Set(x)] : [];
     
     let fetcher;
     async function fetchContext(str) {
@@ -309,6 +310,9 @@ const longestWord = (str) => {
         .filter(x => !x.includes('tionary, the free dictionary'));
       }
       blurbs = [...blurbs,...longblurbs];
+      const sentenceBlurbs = blurbs.join('. ').split(/[\!\?\.]+/).map(x=>x.trim()).filter(Boolean);
+      const phraseBlurbs = blurbs.join('. ').split(/[\!\?\.,;:]+/).map(x=>x.trim()).filter(Boolean);
+      blurbs = unique([...blurbs,...sentenceBlurbs,...phraseBlurbs]);
       let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
