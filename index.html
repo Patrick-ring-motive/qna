@@ -220,6 +220,18 @@
         type: contentType
       });
     }
+
+const longestWord = (str) => {
+  let longest = '';
+  const words = String(str).split(/\s+/);
+  for (const word of words) {
+    if (word.length >= longest.length) {
+      longest = word;
+    }
+  }
+  return longest;
+};
+    
     let fetcher;
     async function fetchContext(str) {
       if (!fetcher) {
@@ -231,10 +243,21 @@
       }
       str = unquote(str);
       let blurbs = [];
+      let longblurbs = [];
+      let longcontext = '';
       let blob = await fetcher(`https://en.wikipedia.org/wiki/${str}`);
       let text = await blob.text();
       let html = new DOMParser().parseFromString(text, "text/html");
       [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+      if (text.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
+        let longblob = await fetcher(`https://en.wikipedia.org/wiki/${(longestWord(str).replace(/[^a-zA-Z]/g,''))}`);
+        let longtext = await longblob.text();
+        let longhtml = new DOMParser().parseFromString(longtext, "text/html");
+        [...longhtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+        longblurbs = [...longhtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
+        .filter(x => !x.includes('tionary, the free dictionary'));
+        longcontext = [...longhtml.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+      }
       if (text.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
         blob = await fetcher(`https://en.wikipedia.org/w/index.php?search=%22${encodeURIComponent(str)}%22&title=Special:Search&profile=advanced&fulltext=1&ns0=1`);
         text = await blob.text();
@@ -267,10 +290,12 @@
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
         .filter(x => !x.includes('tionary, the free dictionary'));
       }
+      blurbs = [...blurbs,...longblurbs];
       let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       }
+      context = longcontext+context;
       context = context.slice(0, 2000) + '.';
       context = context.split('. ').map(cap).join('. ');
       // context = await fix(context);
