@@ -308,7 +308,7 @@ const longestWord = (str) => {
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
         .filter(x => !x.includes('tionary, the free dictionary'));
       }
-      blurbs = [...blurbs,...longblurbs];
+      //blurbs = [...blurbs,...longblurbs];
       let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
