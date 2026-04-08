@@ -173,19 +173,7 @@ self.onmessage = async (e) => {
         }
       }
 
-      if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
-        source = '[bert+lcs]';
-        for (let i = 0; i !== qarr_length; ++i) {
-          const qword = qarr[i].toLowerCase();
-          if ([qword, qarr[i]].some(x => ctx.includes(x))) continue;
-          const { value: bestMatch } = word.bestWeighted(qword, ctx);
-          qarr[i] = bestMatch;
-        }
-        answers = await findAns(qarr.join(' ') + '?', context);
-        if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
-          answers = await findAns(`What is ${qarr.join(' ')}?`, context);
-        }
-      }
+      
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         //Answer Encoder Representations from Transformers
@@ -199,6 +187,21 @@ self.onmessage = async (e) => {
         const { value: best } = word.bestMatch(longest, ctx);
         answers = await findAns(`What is ${best}?`, context);
       }
+      
+    /*if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
+        source = '[bert+lcs]';
+        for (let i = 0; i !== qarr_length; ++i) {
+          const qword = qarr[i].toLowerCase();
+          if ([qword, qarr[i]].some(x => ctx.includes(x))) continue;
+          const { value: bestMatch } = word.bestWeighted(qword, ctx);
+          qarr[i] = bestMatch;
+        }
+        answers = await findAns(qarr.join(' ') + '?', context);
+        if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
+          answers = await findAns(`What is ${qarr.join(' ')}?`, context);
+        }
+      }*/
+      
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         source = '[lcs]';
