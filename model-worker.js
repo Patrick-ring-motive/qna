@@ -1,3 +1,35 @@
+/**
+ * QnA Web Worker — Multi-Strategy Answer Engine
+ *
+ * This worker implements a cascade of answer-retrieval strategies, each named
+ * as a playful acronym. They are tried in order, falling back to the next when
+ * the current strategy returns no answer or a suspiciously short one (<2 words).
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * [bert]   — Bidirectional Encoder Representations from Transformers (baseline)
+ *            The raw TF.js QnA model asked with the user's question verbatim.
+ *
+ * [blert]  — BERT + LCS (Lexical Correction)
+ *            When BERT fails, out-of-vocabulary question words are swapped for
+ *            their closest match found in the context via weighted LCS before
+ *            re-querying BERT. Handles typos and paraphrase drift.
+ *
+ * [aert]   — Answer Encoder Representations from Transformers (Keyword Fallback)
+ *            Strips the question down to its longest word and asks BERT
+ *            "What is <longestWord>?" — a last-ditch keyword probe.
+ *
+ * [alert]  — AERT + LCS (Keyword + Lexical Correction)
+ *            Same as [aert] but the longest word is first fuzzy-matched against
+ *            the context vocabulary via LCS before querying BERT.
+ *
+ * [lcs]    — Pure Longest Common Subsequence (No Neural Model)
+ *            BERT is bypassed entirely. The context is split into candidate
+ *            phrases and ranked by LCS similarity to the question. The top
+ *            matching phrase is returned as-is. Used when all BERT strategies
+ *            are exhausted.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
 (() => {
   const _fetch = globalThis.fetch;
   globalThis.fetch = Object.setPrototypeOf(async function fetch(url, options) {
