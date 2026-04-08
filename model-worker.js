@@ -206,34 +206,29 @@ self.onmessage = async (e) => {
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         source = '[lcs]';
-        const quest = question.toLowerCase();
-        let ctext = [/*...blurbs.join('. ').split(/[\?\!\.;:,]/),*/...context.toLowerCase().split(/[\?\!\.]/)];
-        ctext = ctext.filter(x => !/Wiktionary.\sthe\s+free\s+dictionary/i.test(x));
+const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
+const quest = question.toLowerCase();
+let ctext = blurbs ?? context.toLowerCase().split(/[\?\!\.]/);
+ctext = ctext.filter(x => !/Wiktionary.\sthe\s+free\s+dictionary/i.test(x));
 
-        // First pass: context-scored match (raw LCS + length bonus), skip near-identical segments
-        let bestMatch = 0;
-        let matchScore = 0;
-        const ctext_length = ctext.length;
-        for (let x = 0; x !== ctext_length; ++x) {
-          const ctxword = ctext[x];
-          if (word.match(quest, ctxword.toLowerCase())) continue; // too similar — skip
-          const score = seq.context(quest, ctxword.toLowerCase());
-          if (score > matchScore) {
-            matchScore = score;
-            bestMatch = x;
-          }
-        }
-        // Second pass fallback: same scoring, no similarity filter
-        if (!matchScore) {
-          for (let x = 0; x !== ctext_length; ++x) {
-            const ctxword = ctext[x];
-            const score = seq.context(quest, ctxword.toLowerCase());
-            if (score > matchScore) {
-              matchScore = score;
-              bestMatch = x;
-            }
-          }
-        }
+let bestMatch = 0;
+let matchScore = 0;
+const ctext_length = ctext.length;
+
+for (let x = 0; x !== ctext_length; ++x) {
+  const ctxword = ctext[x];
+  if (word.match(lettersOnly(quest), lettersOnly(ctxword))) continue;
+  const score = seq.lcs(quest, ctxword.toLowerCase());
+  if (score > matchScore) { matchScore = score; bestMatch = x; }
+}
+
+if (!matchScore) {
+  for (let x = 0; x !== ctext_length; ++x) {
+    const ctxword = ctext[x];
+    const score = seq.lcs(quest, ctxword.toLowerCase()) + ctxword.length / quest.length;
+    if (score > matchScore) { matchScore = score; bestMatch = x; }
+  }
+}
 
         self.postMessage({
           type: 'ANSWER',
