@@ -161,7 +161,7 @@ self.onmessage = async (e) => {
       source = '[bert]';
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
-        source = '[bert+lcs]';
+        source = '[blert]';//bert + lcs
         for (let i = 0; i !== qarr_length; ++i) {
           const qword = qarr[i].toLowerCase();
           if ([qword, qarr[i]].some(x => ctx.includes(x))) continue;
@@ -183,7 +183,7 @@ self.onmessage = async (e) => {
       }
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
-        source = '[aert+lcs]';
+        source = '[alert]'; //aert + lcs
         const longest = longestWord(question);
         const { value: best } = word.bestMatch(longest, ctx);
         answers = await findAns(`What is ${best}?`, context);
