@@ -207,7 +207,7 @@ self.onmessage = async (e) => {
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         source = '[lcs]';
         const quest = question.toLowerCase();
-        let ctext = [...blurbs.join('. ').split(/[\?\!\.;:,]/),...context.toLowerCase().split(/[\?\!\.]/)];
+        let ctext = [/*...blurbs.join('. ').split(/[\?\!\.;:,]/),*/...context.toLowerCase().split(/[\?\!\.]/)];
         ctext = ctext.filter(x => !/Wiktionary.\sthe\s+free\s+dictionary/i.test(x));
 
         // First pass: context-scored match (raw LCS + length bonus), skip near-identical segments
