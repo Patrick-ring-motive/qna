@@ -231,6 +231,24 @@ const longestWord = (str) => {
   }
   return longest;
 };
+
+    function interleaveStrings(a, b) {
+  const splitSentences = str =>
+    str.match(/[^.!?]+[.!?]+[\s]*/g) ?? [str];
+
+  const aSentences = splitSentences(a);
+  const bSentences = splitSentences(b);
+  const maxLen = Math.max(aSentences.length, bSentences.length);
+
+  const interleaved = [];
+  for (let i = 0; i < maxLen; i++) {
+    if (i < aSentences.length) interleaved.push(aSentences[i]);
+    if (i < bSentences.length) interleaved.push(bSentences[i]);
+  }
+
+  return interleaved.join('').trim();
+}
+
     
     let fetcher;
     async function fetchContext(str) {
@@ -295,7 +313,7 @@ const longestWord = (str) => {
       if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       }
-      context = longcontext+context;
+      context = interleaveStrings(longcontext,context);
       context = context.slice(0, 2000) + '.';
       context = context.split('. ').map(cap).join('. ');
       // context = await fix(context);
