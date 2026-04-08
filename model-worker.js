@@ -156,6 +156,7 @@ self.onmessage = async (e) => {
       if (!answers?.length && !/^what/i.test(question)) {
         answers = await findAns(`What is ${question}?`, context);
       }
+      //Bidirectional Encoder Representations from Transformers
       source = '[bert]';
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
@@ -187,6 +188,7 @@ self.onmessage = async (e) => {
       }
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
+        //Answer Encoder Representations from Transformers
         source = '[aert]';
         answers = await findAns(`What is ${longestWord(question)}?`, context);
       }
