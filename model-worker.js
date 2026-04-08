@@ -147,7 +147,8 @@ self.onmessage = async (e) => {
         context.split(/[.?!]/),
         context.split(/[.?!;]/),
         context.split(/[.?!;,]/),
-        context.split(/[.?!;,\n\r]/)
+        context.split(/[.?!;:,]/),
+        context.split(/[.?!;:,\n\r]/)
       ].flat().map(x => x.trim()).filter(x => x))];
       const ctx = [...new Set(phrases.join(' ').split(/\s+/))].filter(x => x);
 
@@ -206,7 +207,7 @@ self.onmessage = async (e) => {
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         source = '[lcs]';
         const quest = question.toLowerCase();
-        let ctext = blurbs ?? context.toLowerCase().split(/[\?\!\.]/);
+        let ctext = [...blurbs.join('. ')..split(/[\?\!\.;:,]/),...context.toLowerCase().split(/[\?\!\.]/)];
         ctext = ctext.filter(x => !/Wiktionary.\sthe\s+free\s+dictionary/i.test(x));
 
         // First pass: context-scored match (raw LCS + length bonus), skip near-identical segments
