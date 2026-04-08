@@ -320,9 +320,9 @@ const longestWord = (str) => {
       console.log({
         context
       });
-      return Object.assign(new String(context, {
+      return Object.assign(new String(context), {
         blurbs
-      }));
+      });
     }
 
     const chatWindow = document.getElementById('chat-window');
