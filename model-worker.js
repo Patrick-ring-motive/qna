@@ -30,6 +30,9 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
+
+
+
 (() => {
   const _fetch = globalThis.fetch;
   globalThis.fetch = Object.setPrototypeOf(async function fetch(url, options) {
@@ -64,6 +67,15 @@ const stringify = x => {
   } catch (e) {
     console.warn(e, x);
     return String(x);
+  }
+};
+
+const parse = x =>{
+  try{
+    return JSON.parse(x);
+  }catch(e){
+    console.warn(e);
+    return Object(x);
   }
 };
 
@@ -129,16 +141,92 @@ function questionToAnswer(text, answer) {
   return (cap(sent));
 }
 
+
+
+globalThis.correctModelOutput = (async()=>{
+const { WorkerLinter,createBinaryModuleFromUrl } = await import('https://cdn.jsdelivr.net/npm/harper.js/+esm');
+
+let linterInstance = null;
+
+async function getLinter() {
+    if (linterInstance) return linterInstance;
+
+    // 1. Import the necessary tools from the library
+   // const { WorkerLinter, createBinaryModuleFromUrl } = await import('harper.js');
+
+    // 2. Create the binary module. 
+    // If hosting locally, point this to your local node_modules path or public folder.
+    // Here we use the JSDelivr CDN for the .wasm file.
+    const binary = createBinaryModuleFromUrl(
+        'https://cdn.jsdelivr.net/npm/harper.js/dist/harper_wasm_bg.wasm'
+    );
+
+    // 3. Pass the binary into the constructor
+    const linter = new WorkerLinter({ binary });
+    await linter.setup();
+
+    // 4. Configuration for N-gram output
+    const config = await linter.getLintConfig();
+    await linter.setLintConfig({
+        ...config,
+        SpellCheck: false,
+        SentenceCapitalization: false,
+        Matcher: true,
+        Correctness: true
+    });
+
+    linterInstance = linter;
+    return linter;
+}
+
+/**
+ * Corrects a single generated sentence.
+ */
+return (async function correctModelOutput(sentence) {
+    try{
+    const linter = await getLinter();
+    const lints = await linter.lint(sentence);
+    
+    let corrected = sentence;
+    const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
+
+    for (const lint of sortedLints) {
+        if (lint.suggestions && lint.suggestions.length > 0) {
+            corrected = await linter.applySuggestion(
+                corrected, 
+                lint, 
+                lint.suggestions[0]
+            );
+        }
+    }
+
+    return corrected;
+    }catch(e){
+      return `${sentence} ${e}`;
+    }
+});
+})();
+
 async function findAns(ques, ctx) {
   ques = String(ques).trim().replace(/[\s\?\!\.\,\;]*$/g, '?');
   if (ques.split(/\s/).length === 1) {
     ques = `What is ${ques}?`;
   }
-  return await self.model.findAnswers(ques, ctx);
+  const cques = await correctModelOutput(ques);
+  const cctx = await correctModelOutput(ctx);
+  const ans = await self.model.findAnswers(ques, ctx);
+  ans.push(...(await self.model(cques, ctx)));
+  ans.push(...(await self.model(ques, cctx)));
+  ans.push(...(await self.model(cques,cctx)));
+  
+  return [...new Set(ans.map(strinfigy))].map(parse);
 }
+
 
 self.onmessage = async (e) => {
   "use strict";
+
+  globalThis.correctModelOutput  = await globalThis.correctModelOutput;
   const { type, payload } = e.data;
 
   if (type === 'INIT') {
