@@ -144,7 +144,7 @@ function questionToAnswer(text, answer) {
 
 
 globalThis.correctModelOutput = (async()=>{
-const { WorkerLinter,createBinaryModuleFromUrl } = await import('https://cdn.jsdelivr.net/npm/harper.js/+esm');
+const { LocalLinter,createBinaryModuleFromUrl } = await import('https://cdn.jsdelivr.net/npm/harper.js/+esm');
 
 let linterInstance = null;
 
@@ -152,7 +152,7 @@ async function getLinter() {
     if (linterInstance) return linterInstance;
 
     // 1. Import the necessary tools from the library
-   // const { WorkerLinter, createBinaryModuleFromUrl } = await import('harper.js');
+   // const { LocalLinter, createBinaryModuleFromUrl } = await import('harper.js');
 
     // 2. Create the binary module. 
     // If hosting locally, point this to your local node_modules path or public folder.
@@ -162,7 +162,7 @@ async function getLinter() {
     );
 
     // 3. Pass the binary into the constructor
-    const linter = new WorkerLinter({ binary });
+    const linter = new LocalLinter({ binary });
     await linter.setup();
 
     // 4. Configuration for N-gram output
