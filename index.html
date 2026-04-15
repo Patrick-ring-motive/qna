@@ -168,7 +168,7 @@ const wordDedup = str =>{
       words[i] = "";
     }
   }
-  return words.join(' ').replace(/s+/g,' ');
+  return words.join(' ').replace(/\s+/g,' ');
 };
 
     const proxy = 'https://proxy.script-google-com.workers.dev/';
