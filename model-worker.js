@@ -219,7 +219,7 @@ async function findAns(ques, ctx) {
   ans.push(...(await self.model.findAnswers(ques, cctx)));
   ans.push(...(await self.model.findAnswers(cques,cctx)));
   
-  return [...new Set(ans.map(strinfigy))].map(parse);
+  return [...new Set(ans.map(stringify))].map(parse);
 }
 
 
