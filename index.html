@@ -97,6 +97,60 @@
   </footer>
 
   <script type="module">
+
+    let linterInstance = null;
+
+/**
+ * Singleton to ensure we only boot the WebWorker and WASM once.
+ */
+async function getLinter() {
+    if (linterInstance) return linterInstance;
+
+    // harper.js is ESM, so dynamic import is required in CJS files
+    const { WorkerLinter } = await import('harper.js');
+    
+    const linter = new WorkerLinter();
+    await linter.setup();
+
+    // Configuration optimized for N-gram sentence correction
+    const config = await linter.getLintConfig();
+    await linter.setLintConfig({
+        ...config,
+        SpellCheck: false,              // Catch typos in model output
+        SentenceCapitalization: false, // N-grams often miss starting caps
+        Matcher: true,                 // Use full grammar engine
+        Correctness: true
+    });
+
+    linterInstance = linter;
+    return linter;
+}
+
+/**
+ * Corrects a single generated sentence.
+ */
+async function correctModelOutput(sentence) {
+    const linter = await getLinter();
+    const lints = await linter.lint(sentence);
+    
+    let corrected = sentence;
+    // Sort backwards to preserve character indexes as we modify the string
+    const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
+
+    for (const lint of sortedLints) {
+        if (lint.suggestions && lint.suggestions.length > 0) {
+            // Apply the first (best) suggestion automatically
+            corrected = await linter.applySuggestion(
+                corrected, 
+                lint, 
+                lint.suggestions[0]
+            );
+        }
+    }
+
+    return corrected;
+}
+
     const proxy = 'https://proxy.script-google-com.workers.dev/';
     const proxyFetch = async (url) => {
       const pURL = new URL(proxy);
@@ -183,9 +237,9 @@
       if (!/[\?\!\.]$/.test(txt)) {
         txt = String(txt).trim() + '.';
       }
-      txt = await fixText(txt, 'en', 'fr');
-      txt = await fixText(txt, 'fr', 'en');
-      return txt;
+      /*txt = await fixText(txt, 'en', 'fr');
+      txt = await fixText(txt, 'fr', 'en');*/
+      return await correctModelOutput(txt);
     };
     const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
 
