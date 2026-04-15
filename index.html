@@ -98,27 +98,34 @@
 
   <script type="module">
 
-  import { WorkerLinter } from 'https://cdn.jsdelivr.net/npm/harper.js/+esm';
+  import { WorkerLinter,createBinaryModuleFromUrl } from 'https://cdn.jsdelivr.net/npm/harper.js/+esm';
 
 let linterInstance = null;
 
-/**
- * Initializes the linter once. 
- * Call this when your app loads so it's "warm" when the model generates text.
- */
 async function getLinter() {
     if (linterInstance) return linterInstance;
 
-    const linter = new WorkerLinter();
+    // 1. Import the necessary tools from the library
+   // const { WorkerLinter, createBinaryModuleFromUrl } = await import('harper.js');
+
+    // 2. Create the binary module. 
+    // If hosting locally, point this to your local node_modules path or public folder.
+    // Here we use the JSDelivr CDN for the .wasm file.
+    const binary = createBinaryModuleFromUrl(
+        'https://cdn.jsdelivr.net/npm/harper.js/dist/harper_wasm_bg.wasm'
+    );
+
+    // 3. Pass the binary into the constructor
+    const linter = new WorkerLinter({ binary });
     await linter.setup();
 
-    // Configure specifically for N-gram output errors
+    // 4. Configuration for N-gram output
     const config = await linter.getLintConfig();
     await linter.setLintConfig({
         ...config,
-        SpellCheck: false,              // Useful for model-generated typos
-        SentenceCapitalization: true, // N-grams often struggle with start-of-sentence caps
-        Matcher: true,                 // Keep this on for better grammar "logic"
+        SpellCheck: true,
+        SentenceCapitalization: false,
+        Matcher: true,
         Correctness: true
     });
 
@@ -127,25 +134,31 @@ async function getLinter() {
 }
 
 /**
- * Corrects a single sentence output by your model.
+ * Corrects a single generated sentence.
  */
 async function correctModelOutput(sentence) {
     const linter = await getLinter();
     const lints = await linter.lint(sentence);
     
-    // Sort backwards to maintain character offsets during replacement
-    const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
     let corrected = sentence;
+    const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
 
     for (const lint of sortedLints) {
-        if (lint.suggestions?.length > 0) {
-            // Take the highest-ranked suggestion
-            corrected = await linter.applySuggestion(corrected, lint, lint.suggestions[0]);
+        if (lint.suggestions && lint.suggestions.length > 0) {
+            corrected = await linter.applySuggestion(
+                corrected, 
+                lint, 
+                lint.suggestions[0]
+            );
         }
     }
 
     return corrected;
 }
+
+module.exports = {
+    correctModelOutput
+};
 
     const proxy = 'https://proxy.script-google-com.workers.dev/';
     const proxyFetch = async (url) => {
