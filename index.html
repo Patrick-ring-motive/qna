@@ -137,6 +137,7 @@ async function getLinter() {
  * Corrects a single generated sentence.
  */
 async function correctModelOutput(sentence) {
+    try{
     const linter = await getLinter();
     const lints = await linter.lint(sentence);
     
@@ -154,11 +155,12 @@ async function correctModelOutput(sentence) {
     }
 
     return corrected;
+    }catch(e){
+      return `${sentence} ${e}`;
+    }
 }
 
-module.exports = {
-    correctModelOutput
-};
+
 
     const proxy = 'https://proxy.script-google-com.workers.dev/';
     const proxyFetch = async (url) => {
