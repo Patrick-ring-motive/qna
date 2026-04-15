@@ -41,7 +41,7 @@ const stringify = x => {
 
 const parse = x =>{
   try{
-    return JSON.parse(x);
+    return Object(JSON.parse(x));
   }catch(e){
     console.warn(e);
     return Object(x);
