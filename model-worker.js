@@ -30,7 +30,23 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
+const stringify = x => {
+  try {
+    return JSON.stringify(x);
+  } catch (e) {
+    console.warn(e, x);
+    return String(x);
+  }
+};
 
+const parse = x =>{
+  try{
+    return JSON.parse(x);
+  }catch(e){
+    console.warn(e);
+    return Object(x);
+  }
+};
 
 
 (() => {
@@ -61,23 +77,7 @@ const cap = x => [...String(x)].map((x, i) => (!i) ? x.toUpperCase() : x).join('
 
 const uncap = x => [...String(x)].map((x, i, a) => (a.slice(1).every(y => y == y.toLowerCase()) && !i) ? x.toLowerCase() : x).join('');
 
-const stringify = x => {
-  try {
-    return JSON.stringify(x);
-  } catch (e) {
-    console.warn(e, x);
-    return String(x);
-  }
-};
 
-const parse = x =>{
-  try{
-    return JSON.parse(x);
-  }catch(e){
-    console.warn(e);
-    return Object(x);
-  }
-};
 
 const beReg = /^(is|am|are|were|was|will|did|do|does|can|may|would|could|have|say|get|make|go|know|take|see|come|think|look|want|give|use|find|tell|ask|work|seem|feel|try|leave|call|has)[a-z]+/i;
 const wReg = /^(w|h)[a-z]+/i;
