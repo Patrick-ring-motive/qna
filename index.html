@@ -379,13 +379,26 @@ const longestWord = (str) => {
         html = new DOMParser().parseFromString(text, "text/html");
         [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
       }
+      let deephtml;
+      let deepblurbs = [];
+      let deepcontext = [];
+      if(html.querySelector('a[href]:has(.searchmatch)')){
+        const deepurl = html.querySelector('a[href]:has(.searchmatch)').href;
+        const deepblob = await fetcher(deepurl);
+        const deeptext = await deepblob.text();
+        deephtml = new DOMParser().parseFromString(deeptext, "text/html");
+        [...deephtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+        deepblurbs = [...deephtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
+        .filter(x => !x.includes('tionary, the free dictionary'));
+        deepcontext = [...deephtml.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+      }
       blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
         .filter(x => !x.includes('tionary, the free dictionary'));
       if (!blurbs.length) {
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
         .filter(x => !x.includes('tionary, the free dictionary'));
       }
-      blurbs = [...blurbs,...longblurbs];
+      blurbs = [...blurbs,...longblurbs,...deepblurbs];
       const sentenceBlurbs = blurbs.join('. ').split(/[\!\?\.]+/).map(x=>x.trim()).filter(Boolean);
       const phraseBlurbs = blurbs.join('. ').split(/[\!\?\.,;:]+/).map(x=>x.trim()).filter(Boolean);
       blurbs = unique([...blurbs,...sentenceBlurbs,...phraseBlurbs]);
@@ -393,7 +406,7 @@ const longestWord = (str) => {
       if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       }
-      context = interleaveStrings(longcontext,context);
+      context = interleaveStrings(deepcontext,interleaveStrings(longcontext,context));
       context = context.slice(0, 2000) + '.';
       context = context.split('. ').map(cap).join('. ');
       // context = await fix(context);
