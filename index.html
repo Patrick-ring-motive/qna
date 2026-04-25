@@ -257,8 +257,9 @@ const wordDedup = str =>{
       if (!/[\?\!\.]$/.test(txt)) {
         txt = wordDedup(String(txt).trim()) + '.';
       }
-      /*txt = await fixText(txt, 'en', 'fr');
-      txt = await fixText(txt, 'fr', 'en');*/
+      txt = wordDedup(await correctModelOutput(txt));
+      txt = await fixText(txt, 'en', 'fr');
+      txt = await fixText(txt, 'fr', 'en');
       return wordDedup(await correctModelOutput(txt));
     };
     const gasUrl = `https://script.google.com/macros/s/AKfycbyzgMVduwBNMiOiWL5iqrm7ixjfUU4ajWEt0tfZvFqLxOPXep9X9V41PFWuHdusLutx/exec`;
