@@ -258,6 +258,7 @@ const wordDedup = str =>{
         txt = wordDedup(String(txt).trim()) + '.';
       }
       txt = wordDedup(await correctModelOutput(txt));
+      txt = txt.replaceAll('.',' ');
       txt = await fixText(txt, 'en', 'fr');
       txt = await fixText(txt, 'fr', 'en');
       return wordDedup(await correctModelOutput(txt));
