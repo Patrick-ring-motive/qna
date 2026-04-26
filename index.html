@@ -371,8 +371,8 @@ const longestWordPair = (str) => {
       }
       if (longtext.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
         let longblob = await fetcher(`https://en.wikipedia.org/wiki/${(longestWord(str).replace(/[^a-zA-Z]/g,''))}`);
-        let longtext = await longblob.text();
-        longhtml = new DOMParser().parseFromString(longtext, "text/html");
+        longtext = await longblob.text();
+        let longhtml = new DOMParser().parseFromString(longtext, "text/html");
         [...longhtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
         longblurbs = [...longhtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
         .filter(x => !x.includes('tionary, the free dictionary'));
