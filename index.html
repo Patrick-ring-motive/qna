@@ -307,10 +307,13 @@ const longestWord = (str) => {
   }
   return longest;
 };
+    const segs = new Intl.Segmenter("en", { granularity: "sentence" });
+
+const toSentences = text => [...segs.segment(text)].map(x=>x.segment.trim());
 
     function interleaveStrings(a, b) {
   const splitSentences = str =>
-    String(str).match(/[^.!?]+[.!?]+[\s]*/g) ?? [String(str)];
+   toSentence(String(str));//.match(/[^.!?]+[.!?]+[\s]*/g) ?? [String(str)];
 
   const aSentences = splitSentences(a);
   const bSentences = splitSentences(b);
@@ -401,7 +404,8 @@ const longestWord = (str) => {
       blurbs = [...blurbs,...longblurbs,...deepblurbs];
       const sentenceBlurbs = blurbs.join('. ').split(/[\!\?\.]+/).map(x=>x.trim()).filter(Boolean);
       const phraseBlurbs = blurbs.join('. ').split(/[\!\?\.,;:]+/).map(x=>x.trim()).filter(Boolean);
-      blurbs = unique([...blurbs,...sentenceBlurbs,...phraseBlurbs]);
+      const intlBlurbs = toSentences(blurbs.join('. '));
+      blurbs = unique([...blurbs,...sentenceBlurbs,...phraseBlurbs,...intlBlurbs]);
       let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
