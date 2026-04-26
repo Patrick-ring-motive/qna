@@ -381,7 +381,7 @@ const longestWord = (str) => {
       }
       let deephtml;
       let deepblurbs = [];
-      let deepcontext = [];
+      let deepcontext = '';
       if(html.querySelector('a[href]:has(.searchmatch)')){
         const deepurl = html.querySelector('a[href]:has(.searchmatch)').href;
         const deepblob = await fetcher(deepurl);
