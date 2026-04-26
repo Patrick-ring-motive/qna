@@ -215,9 +215,9 @@ async function findAns(ques, ctx) {
   const cques = await correctModelOutput(ques);
   const cctx = await correctModelOutput(ctx);
   const ans = await self.model.findAnswers(ques, ctx);
-  ans.push(...(await self.model.findAnswers(cques, ctx)));
-  ans.push(...(await self.model.findAnswers(ques, cctx)));
-  ans.push(...(await self.model.findAnswers(cques,cctx)));
+  if(ans.length < 2)ans.push(...(await self.model.findAnswers(cques, ctx)));
+  if(ans.length < 2)ans.push(...(await self.model.findAnswers(ques, cctx)));
+  if(ans.length < 2)ans.push(...(await self.model.findAnswers(cques,cctx)));
   
   return [...new Set(ans.map(stringify))].map(parse);
 }
