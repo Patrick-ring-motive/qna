@@ -310,6 +310,18 @@ const longestWord = (str) => {
   }
   return longest;
 };
+
+const longestWordPair = (str) => {
+  let longest = '';
+  const words = String(str).split(/\s+/);
+  for (let i = 0;i<words.length;++i) {
+    const word = ((words[i-1]||'')+' '+words[i]).trim();
+    if (word.length >= longest.length) {
+      longest = word;
+    }
+  }
+  return longest;
+};
     
     function interleaveStrings(a, b) {
   const splitSentences = str =>
@@ -340,6 +352,7 @@ const longestWord = (str) => {
         }
       }
       str = unquote(str);
+      let longtext = '';
       let blurbs = [];
       let longblurbs = [];
       let longcontext = '';
@@ -348,9 +361,18 @@ const longestWord = (str) => {
       let html = new DOMParser().parseFromString(text, "text/html");
       [...html.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
       if (text.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
+        let longblob = await fetcher(`https://en.wikipedia.org/wiki/${(longestWordPair(str).replace(/[^a-zA-Z]/g,''))}`);
+        longtext = await longblob.text();
+        let longhtml = new DOMParser().parseFromString(longtext, "text/html");
+        [...longhtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
+        longblurbs = [...longhtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
+        .filter(x => !x.includes('tionary, the free dictionary'));
+        longcontext = [...longhtml.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
+      }
+      if (longtext.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
         let longblob = await fetcher(`https://en.wikipedia.org/wiki/${(longestWord(str).replace(/[^a-zA-Z]/g,''))}`);
         let longtext = await longblob.text();
-        let longhtml = new DOMParser().parseFromString(longtext, "text/html");
+        longhtml = new DOMParser().parseFromString(longtext, "text/html");
         [...longhtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
         longblurbs = [...longhtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
         .filter(x => !x.includes('tionary, the free dictionary'));
