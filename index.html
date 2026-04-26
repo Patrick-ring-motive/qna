@@ -99,6 +99,9 @@
   <script type="module">
 
   import { WorkerLinter,createBinaryModuleFromUrl } from 'https://cdn.jsdelivr.net/npm/harper.js/+esm';
+const segs = new Intl.Segmenter("en", { granularity: "sentence" });
+
+const toSentences = text => [...segs.segment(text)].map(x=>x.segment.trim());
 
 let linterInstance = null;
 
@@ -307,10 +310,7 @@ const longestWord = (str) => {
   }
   return longest;
 };
-    const segs = new Intl.Segmenter("en", { granularity: "sentence" });
-
-const toSentences = text => [...segs.segment(text)].map(x=>x.segment.trim());
-
+    
     function interleaveStrings(a, b) {
   const splitSentences = str =>
    toSentence(String(str));//.match(/[^.!?]+[.!?]+[\s]*/g) ?? [String(str)];
