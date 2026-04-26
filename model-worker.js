@@ -93,6 +93,18 @@ const longestWord = (str) => {
   return longest;
 };
 
+const longestWordPair = (str) => {
+  let longest = '';
+  const words = String(str).split(/\s+/);
+  for (let i = 0;i<words.length;++i) {
+    const word = ((words[i-1]||'')+' '+words[i]).trim();
+    if (word.length >= longest.length) {
+      longest = word;
+    }
+  }
+  return longest;
+};
+
 const getBestAnswer = answers => {
   let bestAnswer = (answers && answers.length > 0) ? answers[0].text : "No answer found.";
   let bestScore = 0;
@@ -295,6 +307,19 @@ self.onmessage = async (e) => {
       }
 
       
+
+      if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
+        //Answer Encoder Representations from Transformers
+        source = '[aert]';
+        answers = await findAns(`What is ${longestWordPair(question)}?`, context);
+      }
+
+      if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
+        source = '[alert]'; //aert + lcs
+        const longest = longestWordPair(question);
+        const { value: best } = word.bestMatch(longest, ctx);
+        answers = await findAns(`What is ${best}?`, context);
+      }
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         //Answer Encoder Representations from Transformers
