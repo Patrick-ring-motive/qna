@@ -310,7 +310,7 @@ const longestWord = (str) => {
 
     function interleaveStrings(a, b) {
   const splitSentences = str =>
-    str.match(/[^.!?]+[.!?]+[\s]*/g) ?? [str];
+    String(str).match(/[^.!?]+[.!?]+[\s]*/g) ?? [String(str)];
 
   const aSentences = splitSentences(a);
   const bSentences = splitSentences(b);
@@ -322,7 +322,7 @@ const longestWord = (str) => {
     if (i < bSentences.length) interleaved.push(bSentences[i]);
   }
 
-  return interleaved.join('').trim();
+  return interleaved.join('. ').trim();
 }
 
     const unique = x => x ? [...new Set(x)] : [];
