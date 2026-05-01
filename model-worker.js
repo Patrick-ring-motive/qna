@@ -39,15 +39,14 @@ const stringify = x => {
   }
 };
 
-const parse = x =>{
-  try{
+const parse = x => {
+  try {
     return Object(JSON.parse(x));
-  }catch(e){
+  } catch (e) {
     console.warn(e);
     return Object(x);
   }
 };
-
 
 (() => {
   const _fetch = globalThis.fetch;
@@ -61,7 +60,9 @@ const parse = x =>{
 })();
 
 const importScript = async (url) => {
-  const module = { exports: {} };
+  const module = {
+    exports: {}
+  };
   eval(await (await fetch(url)).text());
   return module.exports;
 };
@@ -76,8 +77,6 @@ const lower = x => String(x).toLowerCase();
 const cap = x => [...String(x)].map((x, i) => (!i) ? x.toUpperCase() : x).join('');
 
 const uncap = x => [...String(x)].map((x, i, a) => (a.slice(1).every(y => y == y.toLowerCase()) && !i) ? x.toLowerCase() : x).join('');
-
-
 
 const beReg = /^(is|am|are|were|was|will|did|do|does|can|may|would|could|have|say|get|make|go|know|take|see|come|think|look|want|give|use|find|tell|ask|work|seem|feel|try|leave|call|has)[a-z]+/i;
 const wReg = /^(w|h)[a-z]+/i;
@@ -96,8 +95,8 @@ const longestWord = (str) => {
 const longestWordPair = (str) => {
   let longest = '';
   const words = String(str).split(/\s+/);
-  for (let i = 0;i<words.length;++i) {
-    const word = ((words[i-1]||'')+' '+words[i]).trim();
+  for (let i = 0; i < words.length; ++i) {
+    const word = ((words[i - 1] || '') + ' ' + words[i]).trim();
     if (word.length >= longest.length) {
       longest = word;
     }
@@ -153,70 +152,73 @@ function questionToAnswer(text, answer) {
   return (cap(sent));
 }
 
+globalThis.correctModelOutput = (async () => {
+  const {
+    LocalLinter,
+    createBinaryModuleFromUrl
+  } = await import('https://cdn.jsdelivr.net/npm/harper.js/+esm');
 
+  let linterInstance = null;
 
-globalThis.correctModelOutput = (async()=>{
-const { LocalLinter,createBinaryModuleFromUrl } = await import('https://cdn.jsdelivr.net/npm/harper.js/+esm');
-
-let linterInstance = null;
-
-async function getLinter() {
+  async function getLinter() {
     if (linterInstance) return linterInstance;
 
     // 1. Import the necessary tools from the library
-   // const { LocalLinter, createBinaryModuleFromUrl } = await import('harper.js');
+    // const { LocalLinter, createBinaryModuleFromUrl } = await import('harper.js');
 
     // 2. Create the binary module. 
     // If hosting locally, point this to your local node_modules path or public folder.
     // Here we use the JSDelivr CDN for the .wasm file.
     const binary = createBinaryModuleFromUrl(
-        'https://cdn.jsdelivr.net/npm/harper.js/dist/harper_wasm_bg.wasm'
+      'https://cdn.jsdelivr.net/npm/harper.js/dist/harper_wasm_bg.wasm'
     );
 
     // 3. Pass the binary into the constructor
-    const linter = new LocalLinter({ binary });
+    const linter = new LocalLinter({
+      binary
+    });
     await linter.setup();
 
     // 4. Configuration for N-gram output
     const config = await linter.getLintConfig();
     await linter.setLintConfig({
-        ...config,
-        SpellCheck: false,
-        SentenceCapitalization: false,
-        Matcher: true,
-        Correctness: true
+      ...config,
+      SpellCheck: false,
+      SentenceCapitalization: false,
+      Matcher: true,
+      Correctness: true
     });
 
     linterInstance = linter;
     return linter;
-}
+  }
 
-/**
- * Corrects a single generated sentence.
- */
-return (async function correctModelOutput(sentence) {
-    try{
-    const linter = await getLinter();
-    const lints = await linter.lint(sentence);
-    
-    let corrected = sentence;
-    const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
+  /**
+   * Corrects a single generated sentence.
+   */
+  return (async function correctModelOutput(sentence) {
+    try {
+      const linter = await getLinter();
+      const lints = await linter.lint(sentence);
 
-    for (const lint of sortedLints) {
+      let corrected = sentence;
+      const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
+
+      for (const lint of sortedLints) {
         if (lint.suggestions && lint.suggestions.length > 0) {
-            corrected = await linter.applySuggestion(
-                corrected, 
-                lint, 
-                lint.suggestions[0]
-            );
+          corrected = await linter.applySuggestion(
+            corrected,
+            lint,
+            lint.suggestions[0]
+          );
         }
-    }
+      }
 
-    return corrected;
-    }catch(e){
+      return corrected;
+    } catch (e) {
       return `${sentence} ${e}`;
     }
-});
+  });
 })();
 
 async function findAns(ques, ctx) {
@@ -227,19 +229,21 @@ async function findAns(ques, ctx) {
   const cques = await correctModelOutput(ques);
   const cctx = await correctModelOutput(ctx);
   const ans = await self.model.findAnswers(ques, ctx);
-  if(ans.length < 2)ans.push(...(await self.model.findAnswers(cques, ctx)));
-  if(ans.length < 2)ans.push(...(await self.model.findAnswers(ques, cctx)));
-  if(ans.length < 2)ans.push(...(await self.model.findAnswers(cques,cctx)));
-  
+  if (ans.length < 2) ans.push(...(await self.model.findAnswers(cques, ctx)));
+  if (ans.length < 2) ans.push(...(await self.model.findAnswers(ques, cctx)));
+  if (ans.length < 2) ans.push(...(await self.model.findAnswers(cques, cctx)));
+
   return [...new Set(ans.map(stringify))].map(parse);
 }
-
 
 self.onmessage = async (e) => {
   "use strict";
 
-  globalThis.correctModelOutput  = await globalThis.correctModelOutput;
-  const { type, payload } = e.data;
+  globalThis.correctModelOutput = await globalThis.correctModelOutput;
+  const {
+    type,
+    payload
+  } = e.data;
 
   if (type === 'INIT') {
     try {
@@ -253,22 +257,38 @@ self.onmessage = async (e) => {
 
       await tf.ready();
       self.model = await qna.load();
-      self.postMessage({ type: 'READY' });
+      self.postMessage({
+        type: 'READY'
+      });
     } catch (err) {
       console.warn(err);
-      self.postMessage({ type: 'ERROR', payload: err.message });
+      self.postMessage({
+        type: 'ERROR',
+        payload: err.message
+      });
     }
   }
 
   if (type === 'ASK') {
     try {
-      const { question, context, blurbs } = payload;
-      const { word, seq } = self;
+      const {
+        question,
+        context,
+        blurbs
+      } = payload;
+      const {
+        word,
+        seq
+      } = self;
 
       if (!hasHelloThere) {
         if (word.match(question.toLowerCase(), helloThere)) {
           hasHelloThere = true;
-          self.postMessage({ type: 'ANSWER', payload: 'General Kenobi!', source: '' });
+          self.postMessage({
+            type: 'ANSWER',
+            payload: 'General Kenobi!',
+            source: ''
+          });
           return;
         }
       }
@@ -293,11 +313,14 @@ self.onmessage = async (e) => {
       source = '[bert]';
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
-        source = '[blert]';//bert + lcs
+        source = '[blert]'; //bert + lcs
         for (let i = 0; i !== qarr_length; ++i) {
           const qword = qarr[i].toLowerCase();
           if ([qword, qarr[i]].some(x => ctx.includes(x))) continue;
-          const { value: bestMatch, match } = word.bestWeighted(qword, ctx);
+          const {
+            value: bestMatch,
+            match
+          } = word.bestWeighted(qword, ctx);
           if (match) qarr[i] = bestMatch;
         }
         answers = await findAns(qarr.join(' ') + '?', context);
@@ -305,8 +328,6 @@ self.onmessage = async (e) => {
           answers = await findAns(`What is ${qarr.join(' ')}?`, context);
         }
       }
-
-      
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         //Answer Encoder Representations from Transformers
@@ -317,7 +338,9 @@ self.onmessage = async (e) => {
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         source = '[alert]'; //aert + lcs
         const longest = longestWordPair(question);
-        const { value: best } = word.bestMatch(longest, ctx);
+        const {
+          value: best
+        } = word.bestMatch(longest, ctx);
         answers = await findAns(`What is ${best}?`, context);
       }
 
@@ -330,50 +353,57 @@ self.onmessage = async (e) => {
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         source = '[alert]'; //aert + lcs
         const longest = longestWord(question);
-        const { value: best } = word.bestMatch(longest, ctx);
+        const {
+          value: best
+        } = word.bestMatch(longest, ctx);
         answers = await findAns(`What is ${best}?`, context);
       }
-      
-    /*if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
-        source = '[bert+lcs]';
-        for (let i = 0; i !== qarr_length; ++i) {
-          const qword = qarr[i].toLowerCase();
-          if ([qword, qarr[i]].some(x => ctx.includes(x))) continue;
-          const { value: bestMatch } = word.bestWeighted(qword, ctx);
-          qarr[i] = bestMatch;
-        }
-        answers = await findAns(qarr.join(' ') + '?', context);
-        if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
-          answers = await findAns(`What is ${qarr.join(' ')}?`, context);
-        }
-      }*/
-      
+
+      /*if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
+          source = '[bert+lcs]';
+          for (let i = 0; i !== qarr_length; ++i) {
+            const qword = qarr[i].toLowerCase();
+            if ([qword, qarr[i]].some(x => ctx.includes(x))) continue;
+            const { value: bestMatch } = word.bestWeighted(qword, ctx);
+            qarr[i] = bestMatch;
+          }
+          answers = await findAns(qarr.join(' ') + '?', context);
+          if (!answers?.length && !/^what/i.test(qarr.join(' '))) {
+            answers = await findAns(`What is ${qarr.join(' ')}?`, context);
+          }
+        }*/
 
       if (!answers?.length || getBestAnswer(answers).split(/\s+/).length < 2) {
         source = '[lcs]';
-const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
-const quest = question.toLowerCase();
-let ctext = blurbs ?? context.toLowerCase().split(/[\?\!\.]/);
-ctext = ctext.filter(x => !/Wiktionary.\sthe\s+free\s+dictionary/i.test(x));
+        const lettersOnly = x => String(x).toLowerCase().replace(/[^a-z]/g, '');
+        const quest = question.toLowerCase();
+        let ctext = blurbs ?? context.toLowerCase().split(/[\?\!\.]/);
+        ctext = ctext.filter(x => !/Wiktionary.\sthe\s+free\s+dictionary/i.test(x));
 
-let bestMatch = 0;
-let matchScore = 0;
-const ctext_length = ctext.length;
+        let bestMatch = 0;
+        let matchScore = 0;
+        const ctext_length = ctext.length;
 
-for (let x = 0; x !== ctext_length; ++x) {
-  const ctxword = ctext[x];
-  if (word.match(lettersOnly(quest), lettersOnly(ctxword))) continue;
-  const score = seq.lcs(quest, ctxword.toLowerCase());
-  if (score > matchScore) { matchScore = score; bestMatch = x; }
-}
+        for (let x = 0; x !== ctext_length; ++x) {
+          const ctxword = ctext[x];
+          if (word.match(lettersOnly(quest), lettersOnly(ctxword))) continue;
+          const score = seq.lcs(quest, ctxword.toLowerCase());
+          if (score > matchScore) {
+            matchScore = score;
+            bestMatch = x;
+          }
+        }
 
-if (!matchScore) {
-  for (let x = 0; x !== ctext_length; ++x) {
-    const ctxword = ctext[x];
-    const score = seq.lcs(quest, ctxword.toLowerCase()) + ctxword.length / quest.length;
-    if (score > matchScore) { matchScore = score; bestMatch = x; }
-  }
-}
+        if (!matchScore) {
+          for (let x = 0; x !== ctext_length; ++x) {
+            const ctxword = ctext[x];
+            const score = seq.lcs(quest, ctxword.toLowerCase()) + ctxword.length / quest.length;
+            if (score > matchScore) {
+              matchScore = score;
+              bestMatch = x;
+            }
+          }
+        }
 
         self.postMessage({
           type: 'ANSWER',
@@ -391,7 +421,10 @@ if (!matchScore) {
       });
     } catch (err) {
       console.warn(err);
-      self.postMessage({ type: 'ANSWER', payload: err.message });
+      self.postMessage({
+        type: 'ANSWER',
+        payload: err.message
+      });
     }
   }
 };
