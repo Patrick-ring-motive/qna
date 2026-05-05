@@ -97,82 +97,88 @@
   </footer>
 
   <script type="module">
+    import {
+      WorkerLinter,
+      createBinaryModuleFromUrl
+    } from 'https://cdn.jsdelivr.net/npm/harper.js/+esm';
+    const segs = new Intl.Segmenter("en", {
+      granularity: "sentence"
+    });
 
-  import { WorkerLinter,createBinaryModuleFromUrl } from 'https://cdn.jsdelivr.net/npm/harper.js/+esm';
-const segs = new Intl.Segmenter("en", { granularity: "sentence" });
+    const toSentences = text => [...segs.segment(text)].map(x => x.segment.trim());
 
-const toSentences = text => [...segs.segment(text)].map(x=>x.segment.trim());
+    let linterInstance = null;
 
-let linterInstance = null;
+    async function getLinter() {
+      if (linterInstance) return linterInstance;
 
-async function getLinter() {
-    if (linterInstance) return linterInstance;
+      // 1. Import the necessary tools from the library
+      // const { WorkerLinter, createBinaryModuleFromUrl } = await import('harper.js');
 
-    // 1. Import the necessary tools from the library
-   // const { WorkerLinter, createBinaryModuleFromUrl } = await import('harper.js');
-
-    // 2. Create the binary module. 
-    // If hosting locally, point this to your local node_modules path or public folder.
-    // Here we use the JSDelivr CDN for the .wasm file.
-    const binary = createBinaryModuleFromUrl(
+      // 2. Create the binary module. 
+      // If hosting locally, point this to your local node_modules path or public folder.
+      // Here we use the JSDelivr CDN for the .wasm file.
+      const binary = createBinaryModuleFromUrl(
         'https://cdn.jsdelivr.net/npm/harper.js/dist/harper_wasm_bg.wasm'
-    );
+      );
 
-    // 3. Pass the binary into the constructor
-    const linter = new WorkerLinter({ binary });
-    await linter.setup();
+      // 3. Pass the binary into the constructor
+      const linter = new WorkerLinter({
+        binary
+      });
+      await linter.setup();
 
-    // 4. Configuration for N-gram output
-    const config = await linter.getLintConfig();
-    await linter.setLintConfig({
+      // 4. Configuration for N-gram output
+      const config = await linter.getLintConfig();
+      await linter.setLintConfig({
         ...config,
         SpellCheck: true,
         SentenceCapitalization: false,
         Matcher: true,
         Correctness: true
-    });
+      });
 
-    linterInstance = linter;
-    return linter;
-}
+      linterInstance = linter;
+      return linter;
+    }
 
-/**
- * Corrects a single generated sentence.
- */
-async function correctModelOutput(sentence) {
-    try{
-    const linter = await getLinter();
-    const lints = await linter.lint(sentence);
-    
-    let corrected = sentence;
-    const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
+    /**
+     * Corrects a single generated sentence.
+     */
+    async function correctModelOutput(sentence) {
+      try {
+        const linter = await getLinter();
+        const lints = await linter.lint(sentence);
 
-    for (const lint of sortedLints) {
-        if (lint.suggestions && lint.suggestions.length > 0) {
+        let corrected = sentence;
+        const sortedLints = lints.sort((a, b) => b.span.start - a.span.start);
+
+        for (const lint of sortedLints) {
+          if (lint.suggestions && lint.suggestions.length > 0) {
             corrected = await linter.applySuggestion(
-                corrected, 
-                lint, 
-                lint.suggestions[0]
+              corrected,
+              lint,
+              lint.suggestions[0]
             );
+          }
         }
+
+        return corrected;
+      } catch (e) {
+        return `${sentence} ${e}`;
+      }
     }
 
-    return corrected;
-    }catch(e){
-      return `${sentence} ${e}`;
-    }
-}
-
-const wordDedup = str =>{
-  const words = String(str).split(/\s+/);
-  const words_length = words.length;
-  for(let i = 0; i !== words_length; ++i){
-    if(words[i] === words[i-1]){
-      words[i] = "";
-    }
-  }
-  return words.join(' ').replace(/\s+/g,' ');
-};
+    const wordDedup = str => {
+      const words = String(str).split(/\s+/);
+      const words_length = words.length;
+      for (let i = 0; i !== words_length; ++i) {
+        if (words[i] === words[i - 1]) {
+          words[i] = "";
+        }
+      }
+      return words.join(' ').replace(/\s+/g, ' ');
+    };
 
     const proxy = 'https://proxy.script-google-com.workers.dev/';
     const proxyFetch = async (url) => {
@@ -261,7 +267,7 @@ const wordDedup = str =>{
         txt = wordDedup(String(txt).trim()) + '.';
       }
       txt = wordDedup(await correctModelOutput(txt));
-      txt = txt.replaceAll('.',' ');
+      txt = txt.replaceAll('.', ' ');
       txt = await fixText(txt, 'en', 'fr');
       txt = await fixText(txt, 'fr', 'en');
       return wordDedup(await correctModelOutput(txt));
@@ -300,48 +306,48 @@ const wordDedup = str =>{
       });
     }
 
-const longestWord = (str) => {
-  let longest = '';
-  const words = String(str).split(/\s+/);
-  for (const word of words) {
-    if (word.length >= longest.length) {
-      longest = word;
-    }
-  }
-  return longest;
-};
+    const longestWord = (str) => {
+      let longest = '';
+      const words = String(str).split(/\s+/);
+      for (const word of words) {
+        if (word.length >= longest.length) {
+          longest = word;
+        }
+      }
+      return longest;
+    };
 
-const longestWordPair = (str) => {
-  let longest = '';
-  const words = String(str).split(/\s+/);
-  for (let i = 0;i<words.length;++i) {
-    const word = ((words[i-1]||'')+' '+words[i]).trim();
-    if (word.length >= longest.length) {
-      longest = word;
-    }
-  }
-  return longest;
-};
-    
+    const longestWordPair = (str) => {
+      let longest = '';
+      const words = String(str).split(/\s+/);
+      for (let i = 0; i < words.length; ++i) {
+        const word = ((words[i - 1] || '') + ' ' + words[i]).trim();
+        if (word.length >= longest.length) {
+          longest = word;
+        }
+      }
+      return longest;
+    };
+
     function interleaveStrings(a, b) {
-  const splitSentences = str =>
-   toSentences(String(str));//.match(/[^.!?]+[.!?]+[\s]*/g) ?? [String(str)];
+      const splitSentences = str =>
+        toSentences(String(str)); //.match(/[^.!?]+[.!?]+[\s]*/g) ?? [String(str)];
 
-  const aSentences = splitSentences(a);
-  const bSentences = splitSentences(b);
-  const maxLen = Math.max(aSentences.length, bSentences.length);
+      const aSentences = splitSentences(a);
+      const bSentences = splitSentences(b);
+      const maxLen = Math.max(aSentences.length, bSentences.length);
 
-  const interleaved = [];
-  for (let i = 0; i < maxLen; i++) {
-    if (i < aSentences.length) interleaved.push(aSentences[i]);
-    if (i < bSentences.length) interleaved.push(bSentences[i]);
-  }
+      const interleaved = [];
+      for (let i = 0; i < maxLen; i++) {
+        if (i < aSentences.length) interleaved.push(aSentences[i]);
+        if (i < bSentences.length) interleaved.push(bSentences[i]);
+      }
 
-  return interleaved.join('. ').trim();
-}
+      return interleaved.join('. ').trim();
+    }
 
     const unique = x => x ? [...new Set(x)] : [];
-    
+
     let fetcher;
     async function fetchContext(str) {
       if (!fetcher) {
@@ -366,7 +372,7 @@ const longestWordPair = (str) => {
         let longhtml = new DOMParser().parseFromString(longtext, "text/html");
         [...longhtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
         longblurbs = [...longhtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
-        .filter(x => !x.includes('tionary, the free dictionary'));
+          .filter(x => !x.includes('tionary, the free dictionary'));
         longcontext = [...longhtml.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       }
       if (longtext.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
@@ -375,7 +381,7 @@ const longestWordPair = (str) => {
         let longhtml = new DOMParser().parseFromString(longtext, "text/html");
         [...longhtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
         longblurbs = [...longhtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
-        .filter(x => !x.includes('tionary, the free dictionary'));
+          .filter(x => !x.includes('tionary, the free dictionary'));
         longcontext = [...longhtml.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       }
       if (text.replace(/\s+/g, ' ').includes('Wikipedia does not have an article with this exact name') || !html.querySelector('#bodyContent .mw-content-ltr')) {
@@ -407,32 +413,32 @@ const longestWordPair = (str) => {
       let deephtml;
       let deepblurbs = [];
       let deepcontext = '';
-      if(html.querySelector('a[href]:has(.searchmatch)')){
+      if (html.querySelector('a[href]:has(.searchmatch)')) {
         const deepurl = html.querySelector('a[href]:has(.searchmatch)').href;
         const deepblob = await fetcher(deepurl);
         const deeptext = await deepblob.text();
         deephtml = new DOMParser().parseFromString(deeptext, "text/html");
         [...deephtml.querySelectorAll('script,style,.mw-search-result-data,.searchResultImage-thumbnail')].forEach(x => x.remove());
         deepblurbs = [...deephtml.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
-        .filter(x => !x.includes('tionary, the free dictionary'));
+          .filter(x => !x.includes('tionary, the free dictionary'));
         deepcontext = [...deephtml.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       }
       blurbs = [...html.querySelectorAll('li.mw-search-result,#mw-interwiki-results li')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
         .filter(x => !x.includes('tionary, the free dictionary'));
       if (!blurbs.length) {
         blurbs = [...html.querySelectorAll('#bodyContent .mw-content-ltr :is(li,pi)')].map(x => String(x.textContent).replace(/\s+/g, ' ').replace(/[\!\?\.]+/g, '.').replaceAll('"', '').trim())
-        .filter(x => !x.includes('tionary, the free dictionary'));
+          .filter(x => !x.includes('tionary, the free dictionary'));
       }
-      blurbs = [...blurbs,...longblurbs,...deepblurbs];
-      const sentenceBlurbs = blurbs.join('. ').split(/[\!\?\.]+/).map(x=>x.trim()).filter(Boolean);
-      const phraseBlurbs = blurbs.join('. ').split(/[\!\?\.,;:]+/).map(x=>x.trim()).filter(Boolean);
+      blurbs = [...blurbs, ...longblurbs, ...deepblurbs];
+      const sentenceBlurbs = blurbs.join('. ').split(/[\!\?\.]+/).map(x => x.trim()).filter(Boolean);
+      const phraseBlurbs = blurbs.join('. ').split(/[\!\?\.,;:]+/).map(x => x.trim()).filter(Boolean);
       const intlBlurbs = toSentences(blurbs.join('. '));
-      blurbs = unique([...blurbs,...sentenceBlurbs,...phraseBlurbs,...intlBlurbs]);
+      blurbs = unique([...blurbs, ...sentenceBlurbs, ...phraseBlurbs, ...intlBlurbs]);
       let context = [...html.querySelectorAll('.searchresult,#mw-interwiki-results li')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       if (!context.length) {
         context = [...html.querySelectorAll('#bodyContent ')].map(x => x?.textContent).join('. ').replace(/\.+/g, '.').trim();
       }
-      context = interleaveStrings(deepcontext,interleaveStrings(longcontext,context));
+      context = interleaveStrings(deepcontext, interleaveStrings(longcontext, context));
       context = context.slice(0, 2000) + '.';
       context = context.split('. ').map(cap).join('. ');
       // context = await fix(context);
@@ -497,7 +503,7 @@ const longestWordPair = (str) => {
 
         case 'ANSWER':
           if (currentLoadingMsg) {
-            currentLoadingMsg.innerHTML = (await fix(payload)).replace(/[\(\)]/g,'') + `<sup>${source}</sup>`;
+            currentLoadingMsg.innerHTML = (await fix(payload)).replace(/[\(\)]/g, '') + `<sup>${source}</sup>`;
             currentLoadingMsg.classList.remove('loading-dots');
             currentLoadingMsg = null;
           }
